@@ -13,7 +13,8 @@ on:
 permissions: read-all
 
 env:
-  REGISTRY_NAME: ghcr.io  # SDSC ADD-ON
+  REGISTRY_NAME: ghcr.io # SDSC ADD-ON
+  USERNAME: ${{ github.repository_owner }}
   TAG: gha${{ github.run_number }}
 
 jobs:
@@ -78,13 +79,10 @@ jobs:
           docker buildx build \
             --platform ${{ matrix.platform }} \
             --push \
-            --tag ${{ env.REGISTRY_NAME }}/${{ matrix.image }}:${{ env.TAG }}-${PLATFORM_TAG} \
-            --cache-from type=registry,ref=${{ env.REGISTRY_NAME }}/public/${{ matrix.image }}:latest \
+            --tag ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${{ matrix.image }}:${{ env.TAG }}-${PLATFORM_TAG} \
+            --cache-from type=registry,ref=${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${{ matrix.image }}:latest \
             --cache-to type=inline \
             ./${{ matrix.image }}
-        env:
-          REGISTRY_NAME: ${{ env.REGISTRY_NAME }}
-          TAG: ${{ env.TAG }}
 
   create-manifests:
     name: Create Multi-Platform Manifests
@@ -99,7 +97,7 @@ jobs:
       - name: Log in to the Container registry
         uses: docker/login-action@v3.0.0
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ${{ env.REGISTRY_NAME }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -113,10 +111,7 @@ jobs:
           for image in "${IMAGES[@]}"; do
             echo "Creating manifest for $image"
             docker buildx imagetools create \
-              --tag ${{ env.REGISTRY_NAME }}/${image}:${{ env.TAG }} \
-              ${{ env.REGISTRY_NAME }}/${image}:${{ env.TAG }}-linux-amd64 \
-              ${{ env.REGISTRY_NAME }}/${image}:${{ env.TAG }}-linux-arm64
+              --tag ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${image}:${{ env.TAG }} \
+              ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${image}:${{ env.TAG }}-linux-amd64 \
+              ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${image}:${{ env.TAG }}-linux-arm64
           done
-        env:
-          REGISTRY_NAME: ${{ env.REGISTRY_NAME }}
-          TAG: ${{ env.TAG }}
