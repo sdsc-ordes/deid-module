@@ -94,3 +94,5 @@ jobs:
               ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${image}:${{ env.TAG }}-linux-amd64 \
               ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${image}:${{ env.TAG }}-linux-arm64
           done
+        env:
+          TAG: latest
