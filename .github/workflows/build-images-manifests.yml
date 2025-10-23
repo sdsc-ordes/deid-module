@@ -2,13 +2,13 @@ name: Presidio Docker Build
 
 on:
   push: 
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+  # pull_request:
+  #   branches: [ main ]
+  # workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref }}
+#   cancel-in-progress: true
 
 permissions: read-all
 
