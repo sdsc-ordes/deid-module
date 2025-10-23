@@ -6,15 +6,9 @@ on:
   #   branches: [ main ]
   workflow_dispatch:
 
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.ref }}
-#   cancel-in-progress: true
-
-permissions: read-all
-
 env:
   REGISTRY_NAME: ghcr.io # SDSC ADD-ON
-  USERNAME: ${{ github.actor }}
+  USERNAME: ${{ github.repository_owner }}
   TAG: gha${{ github.run_number }}
 
 jobs:
@@ -36,15 +30,6 @@ jobs:
           - image: presidio-image-redactor
             platform: linux/amd64
             runner: ubuntu-latest
-          - image: presidio-anonymizer
-            platform: linux/arm64
-            runner: ubuntu-24.04-arm
-          - image: presidio-analyzer
-            platform: linux/arm64
-            runner: ubuntu-24.04-arm
-          - image: presidio-image-redactor
-            platform: linux/arm64
-            runner: ubuntu-24.04-arm
     steps:
       # SDSC ADD-ON
       - name: Get latest Presidio release tag
