@@ -14,7 +14,7 @@ permissions: read-all
 
 env:
   REGISTRY_NAME: ghcr.io # SDSC ADD-ON
-  USERNAME: ${{ github.repository_owner }}
+  USERNAME: ${{ github.actor }}
   TAG: gha${{ github.run_number }}
 
 jobs:
