@@ -1,4 +1,10 @@
 .direnv/
+
+# third party manifests
+external/helm/*
+external/ytt/*
+external/.vendir*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

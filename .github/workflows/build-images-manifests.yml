@@ -24,9 +24,10 @@ jobs:
           - image: presidio-analyzer
             platform: linux/amd64
             runner: ubuntu-latest
-          - image: presidio-image-redactor
-            platform: linux/amd64
-            runner: ubuntu-latest
+          # Note: do we want this part of presidio ? Maybe future feature ?
+          # - image: presidio-image-redactor
+          #   platform: linux/amd64
+          #   runner: ubuntu-latest
     steps:
       # SDSC ADD-ON
       - name: Get latest Presidio release tag
