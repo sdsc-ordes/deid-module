@@ -1,8 +1,8 @@
 name: Presidio Docker Build
 
 on:
-  push: 
-  # pull_request: # Future run on main pushes only. 
+  push:
+  # pull_request: # Future run on main pushes only.
   #   branches: [ main ]
   workflow_dispatch:
 
@@ -35,7 +35,7 @@ jobs:
         run: |
           tag=$(curl -s https://api.github.com/repos/microsoft/presidio/releases/latest | jq -r .tag_name)
           echo "tag=$tag" >> $GITHUB_OUTPUT
-          
+
       # SDSC ADD-ON
       - name: Checkout Presidio (latest release)
         uses: actions/checkout@v5
@@ -87,7 +87,7 @@ jobs:
       - name: Create all multi-platform manifests
         run: |
           IMAGES=("presidio-anonymizer" "presidio-analyzer" "presidio-image-redactor")
-          
+
           for image in "${IMAGES[@]}"; do
             echo "Creating manifest for $image"
             docker buildx imagetools create \

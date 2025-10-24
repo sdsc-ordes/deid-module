@@ -33,11 +33,18 @@ render-ytt dir="src":
   fd '^ytt$' {{dir}} \
     -x sh -c 'ytt -f {}/values.yaml -f external/ytt/$(basename {//}) --output-files {}/out'
 
+# Render when the code was pulled in via ytt but is a helm template
+[private]
+render-ytt-extract-helm-template dir="src":
+  # render mixed ytt + helm templates with our values into src/<service>/mix/out
+  fd '^helm$' {{dir}} \
+    -x sh -c 'helm template $(basename {//}) external/ytt/$(basename {//}) -f {}/values.yaml --output-dir {}/out'
+
 # Render manifests
 render dir="src":
   just fetch && \
-    just render-helm {{dir}} && \
     just render-ytt {{dir}} && \
+    just render-ytt-extract-helm-template {{dir}} && \
     just format
 
 # Apply manifests in dir to the cluster.
