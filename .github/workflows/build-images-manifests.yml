@@ -2,8 +2,7 @@ name: Presidio Docker Build
 
 on:
   push:
-  # pull_request: # Future run on main pushes only.
-  #   branches: [ main ]
+    branches: [ main ]
   workflow_dispatch:
 
 env:
