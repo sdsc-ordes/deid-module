@@ -1,0 +1,95 @@
+name: Presidio Docker Build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY_NAME: ghcr.io # SDSC ADD-ON
+  USERNAME: ${{ github.repository_owner }}
+  TAG: gha${{ github.run_number }}
+
+jobs:
+  build-platform-images:
+    name: Build ${{ matrix.image }} (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - image: presidio-anonymizer
+            platform: linux/amd64
+            runner: ubuntu-latest
+          - image: presidio-analyzer
+            platform: linux/amd64
+            runner: ubuntu-latest
+          # Note: do we want this part of presidio ? Maybe future feature ?
+          # - image: presidio-image-redactor
+          #   platform: linux/amd64
+          #   runner: ubuntu-latest
+    steps:
+      # SDSC ADD-ON
+      - name: Get latest Presidio release tag
+        id: presidio_release
+        run: |
+          tag=$(curl -s https://api.github.com/repos/microsoft/presidio/releases/latest | jq -r .tag_name)
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+
+      # SDSC ADD-ON
+      - name: Checkout Presidio (latest release)
+        uses: actions/checkout@v5
+        with:
+          repository: microsoft/presidio
+          ref: ${{ steps.presidio_release.outputs.tag }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # SDSC ADD-ON
+      # https://github.com/docker/login-action
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3.0.0
+        with:
+          registry: ${{ env.REGISTRY_NAME }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push ${{ matrix.image }} for ${{ matrix.platform }}
+        run: |
+          # Create platform-specific tag
+          PLATFORM_TAG=$(echo "${{ matrix.platform }}" | sed 's/\//-/g')
+          docker buildx build \
+            --platform ${{ matrix.platform }} \
+            --push \
+            --tag ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${{ matrix.image }}:${{ env.TAG }}-${PLATFORM_TAG} \
+            --cache-from type=registry,ref=${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${{ matrix.image }}:latest \
+            --cache-to type=inline \
+            ./${{ matrix.image }}
+
+  create-manifests:
+    name: Create Multi-Platform Manifests
+    runs-on: ubuntu-latest
+    needs: build-platform-images
+    steps:
+      # SDSC ADD-ON
+      # https://github.com/docker/login-action
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3.0.0
+        with:
+          registry: ${{ env.REGISTRY_NAME }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create all multi-platform manifests
+        run: |
+          IMAGES=("presidio-anonymizer" "presidio-analyzer" "presidio-image-redactor")
+
+          for image in "${IMAGES[@]}"; do
+            echo "Creating manifest for $image"
+            docker buildx imagetools create \
+              --tag ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${image}:${{ env.TAG }} \
+              ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${image}:${{ env.TAG }}-linux-amd64
+          done

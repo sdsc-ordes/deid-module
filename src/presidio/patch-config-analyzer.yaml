@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: presidio-presidio-analyzer
+spec:
+  selector:
+  matchLabels:
+    app: presidio-presidio-analyzer
+  template:
+    spec:
+      volumes:
+        - name: presidio-analyzer-config
+          configMap:
+            name: presidio-analyzer-config
+      containers:
+        - name: presidio
+          volumeMounts:
+            - name: presidio-analyzer-config
+              #TO-DO ensure this is the right path in the container
+              mountPath: presidio_analyzer/conf/default_analyzer.yaml 
+              subPath: default-analyzer.yaml

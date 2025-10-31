@@ -1,0 +1,21 @@
+---
+# Source: presidio/templates/analyzer-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: presidio-presidio-analyzer
+  labels:
+    app: presidio-presidio-analyzer
+    service: presidio-presidio-analyzer
+    chart: "presidio-2"
+    release: "presidio"
+    heritage: "Helm"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: presidio-presidio-analyzer

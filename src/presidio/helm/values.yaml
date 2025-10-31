@@ -1,7 +1,6 @@
-registry: mcr.microsoft.com
+registry: ghcr.io
  
 # Image pull secret
-# privateRegistry: acr-auth
 tag: latest
 
 # supported types are nginx (wip: traefik and istio)
