@@ -7,5 +7,5 @@ directories:
       tags:
       - 2.2.360
     path: .
-  path: ytt/presidio
+  path: helm/presidio
 kind: LockConfig

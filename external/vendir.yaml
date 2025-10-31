@@ -1,20 +1,10 @@
 apiVersion: vendir.k14s.io/v1alpha1
 kind: Config
 directories:
-  - path: ytt/presidio
+  - path: helm/presidio
     contents:
       - path: .
         git:
           url: https://github.com/microsoft/presidio
           ref: refs/tags/2.2.360
         newRootPath: docs/samples/deployments/k8s/charts/presidio
-    # - path: helm/presidio
-    # contents:
-    #   - path: .
-    #     helmChart:
-    #       name: presidio
-    #       version: 2.2.360
-    #       git:
-    #         url: https://github.com/microsoft/presidio
-    #         ref: refs/tags/2.2.360
-    #         subPath: docs/samples/deployments/k8s/charts/presidio
