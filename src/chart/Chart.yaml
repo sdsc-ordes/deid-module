@@ -1,0 +1,16 @@
+apiVersion: v2
+name: deid-presidio
+description: A Helm chart for deploying Presidio with swiss-specific ConfigMaps and values
+type: application
+version: 0.1.0
+appVersion: "1.0"
+keywords:
+  - presidio
+  - deid
+  - privacy
+  - helm
+maintainers:
+  - name: Your Name
+    email: your.email@example.com
+sources:
+  - https://github.com/sdsc-ordes/deid-module
