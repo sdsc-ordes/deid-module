@@ -23,6 +23,7 @@ clean:
 [private]
 render-helm:
   # render external helm charts with our values into src/<service>/helm/out
+  rm -r src/chart/templates/presidio/*
   cp external/helm/presidio/templates/* src/chart/templates/presidio
   helm template src/chart -f src/chart/values.yaml --output-dir build
 
