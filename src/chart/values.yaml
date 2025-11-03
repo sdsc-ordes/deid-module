@@ -1,4 +1,4 @@
-registry: mcr.microsoft.com
+registry: ghcr.io
 
 # Image pull secret
 # privateRegistry: acr-auth
@@ -14,7 +14,7 @@ ingress:
 # https://github.com/microsoft/presidio/issues/304
 
 analyzer:
-  name: presidio-analyzer
+  name: sdsc-ordes/presidio-analyzer
   replicas: 1
   imagePullPolicy: Always
   container:
@@ -32,7 +32,7 @@ analyzer:
     name: http
 
 anonymizer:
-  name: presidio-anonymizer
+  name: sdsc-ordes/presidio-anonymizer
   replicas: 1
   imagePullPolicy: Always
   container:
@@ -50,7 +50,7 @@ anonymizer:
     name: http
 
 anonymizerimage:
-  name: presidio-image-redactor
+  name: sdsc-ordes/presidio-image-redactor
   replicas: 1
   imagePullPolicy: Always
   container:
