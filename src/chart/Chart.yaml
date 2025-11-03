@@ -10,7 +10,7 @@ keywords:
   - privacy
   - helm
 maintainers:
-  - name: Your Name
-    email: your.email@example.com
+  - name: vancauwe
+  - name: cmdoret
 sources:
   - https://github.com/sdsc-ordes/deid-module
