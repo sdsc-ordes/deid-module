@@ -48,21 +48,3 @@ anonymizer:
     externalPort: 80
     internalPort: 8080
     name: http
-
-anonymizerimage:
-  name: sdsc-ordes/presidio-image-redactor
-  replicas: 1
-  imagePullPolicy: Always
-  container:
-    resources:
-      requests:
-        memory: "1500Mi"
-        cpu: "1500m"
-      limits:
-        memory: "3000Mi"
-        cpu: "2000m"
-  service:
-    type: ClusterIP
-    externalPort: 80
-    internalPort: 8080
-    name: http
