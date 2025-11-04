@@ -18,8 +18,15 @@ spec:
       labels:
         app: {{ $fullname }}
     spec:
+      volumes:
+        - name: "{{ $fullname }}-recognizers-vol"
+          configMap:
+            name: "{{ $fullname }}-recognizers"
+        - name: "{{ $fullname }}-analyzer-vol"
+          configMap:
+            name: "{{ $fullname }}-analyzer"
       containers:
-      - name: {{ .Chart.Name }}
+      - name: {{ $fullname }}
         image: "{{ .Values.registry }}/{{ .Values.analyzer.name }}:{{ default .Chart.AppVersion .Values.tag }}"
         imagePullPolicy: {{ default "IfNotPresent" .Values.analyzer.imagePullPolicy }}
         ports:
@@ -34,5 +41,12 @@ spec:
         env:
           - name: PORT
             value: {{ .Values.analyzer.service.internalPort | quote }}
+        volumeMounts:
+          - name: "{{ $fullname }}-recognizers-vol"
+            #TO-DO ensure this is the right path in the container
+            mountPath: /app/presidio_analyzer/conf/default_recognizers.yaml 
+          - name: "{{ $fullname }}-default-vol"
+            #TO-DO ensure this is the right path in the container
+            mountPath: /app/presidio_analyzer/conf/default_analyzer.yaml 
       {{ if .Values.privateRegistry }}imagePullSecrets:
         - name: {{.Values.privateRegistry}}{{ end }}
