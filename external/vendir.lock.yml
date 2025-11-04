@@ -1,11 +1,11 @@
 apiVersion: vendir.k14s.io/v1alpha1
 directories:
-- contents:
-  - git:
-      commitTitle: Add label to external PRs (#1707)...
-      sha: af1c524460ad62e17313520a3cbb618b062b75cb
-      tags:
-      - 2.2.360
-    path: .
-  path: helm/presidio
+  - contents:
+      - git:
+          commitTitle: Add label to external PRs (#1707)...
+          sha: af1c524460ad62e17313520a3cbb618b062b75cb
+          tags:
+            - 2.2.360
+        path: .
+    path: helm/presidio
 kind: LockConfig

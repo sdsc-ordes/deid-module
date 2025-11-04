@@ -11,7 +11,7 @@ default:
 
 # Format the whole repository.
 format *args:
-    treefmt {{args}}
+    treefmt --excludes 'src/chart/templates/*' {{args}}
 
 # Clean up external and generated manifests.
 clean:
