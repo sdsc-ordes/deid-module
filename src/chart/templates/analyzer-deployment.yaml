@@ -2,14 +2,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $fullname }}
+  name: "{{ $fullname }}"
   labels:
-    app: {{ $fullname }}
+    app: "{{ $fullname }}"
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
 spec:
-  replicas: {{ .Values.analyzer.replicas }}
+  replicas: "{{ .Values.analyzer.replicas }}"
   selector:
     matchLabels:
       app: {{ $fullname }}

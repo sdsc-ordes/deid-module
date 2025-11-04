@@ -3,6 +3,5 @@ kind: ConfigMap
 metadata:
   name: presidio-analyzer-config
 data:
-  default-analyzer.yaml:
-    |-
-      {{ .Files.Get "conf/presidio-analyzer/default-analyzer.yaml" | indent 2 }}
+  default-analyzer.yaml: |-
+    {{ .Files.Get "conf/presidio-analyzer/default-analyzer.yaml" | indent 2 }}
