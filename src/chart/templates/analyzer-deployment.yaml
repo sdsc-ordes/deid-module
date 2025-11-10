@@ -2,14 +2,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "{{ $fullname }}"
+  name: {{ $fullname }}
   labels:
-    app: "{{ $fullname }}"
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-    release: "{{ .Release.Name }}"
-    heritage: "{{ .Release.Service }}"
+    app: {{ $fullname }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
-  replicas: "{{ .Values.analyzer.replicas }}"
+  replicas: {{ .Values.analyzer.replicas }}
   selector:
     matchLabels:
       app: {{ $fullname }}
@@ -19,15 +19,15 @@ spec:
         app: {{ $fullname }}
     spec:
       volumes:
-        - name: "{{ $fullname }}-recognizers-vol"
+        - name: {{ $fullname }}-recognizers-vol
           configMap:
-            name: "{{ default {{ $fullname }}-recognizers .Values.analyzer.rEcognizersConfigMapName }}"
-        - name: "{{ $fullname }}-analyzer-vol"
+            name: {{ default (printf "%s-recognizers-config" (trim $fullname)) .Values.analyzer.recognizersConfigMapName }}
+        - name: {{ $fullname }}-analyzer-vol
           configMap:
-            name: "{{ default {{ $fullname }}-analyzer .Values.analyzer.analyzerConfigMapName }}"
+            name: {{ default (printf "%s-analyzer-config" (trim $fullname)) .Values.analyzer.analyzerConfigMapName }}
       containers:
       - name: {{ $fullname }}
-        image: "{{ .Values.registry }}/{{ .Values.analyzer.name }}:{{ default .Chart.AppVersion .Values.tag }}"
+        image: {{ .Values.registry }}/{{ .Values.analyzer.name }}:{{ default .Chart.AppVersion .Values.tag }}
         imagePullPolicy: {{ default "IfNotPresent" .Values.analyzer.imagePullPolicy }}
         ports:
         - containerPort: {{ .Values.analyzer.service.internalPort }}
@@ -45,7 +45,7 @@ spec:
           - name: "{{ $fullname }}-recognizers-vol"
             #TO-DO ensure this is the right path in the container
             mountPath: /app/presidio_analyzer/conf/default_recognizers.yaml 
-          - name: "{{ $fullname }}-default-vol"
+          - name: "{{ $fullname }}-analyzer-vol"
             #TO-DO ensure this is the right path in the container
             mountPath: /app/presidio_analyzer/conf/default_analyzer.yaml 
       {{ if .Values.privateRegistry }}imagePullSecrets:

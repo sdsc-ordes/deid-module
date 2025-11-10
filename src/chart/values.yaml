@@ -6,7 +6,7 @@ tag: latest
 
 # supported types are nginx (wip: traefik and istio)
 ingress:
-  enabled: true
+  enabled: false
   class: nginx
 
 # For any of the services below, a service mesh like Linkerd or Istio
