@@ -3,8 +3,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: "{{ $fullname }}-recognizers"
+  name: "{{ $fullname }}-recognizers-config"
 data:
-  default-analyzer.yaml:
-    |-
-      {{ .Files.Get "conf/presidio-analyzer/default-recognizers.yaml" | indent 2 }}
+  default-analyzer.yaml: |-
+    {{ .Files.Get "../conf/presidio-analyzer/default-recognizers.yaml" | indent 2 }}
