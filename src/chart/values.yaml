@@ -17,6 +17,8 @@ analyzer:
   name: sdsc-ordes/presidio-analyzer
   replicas: 1
   imagePullPolicy: Always
+# analyzerConfigMapName: ""
+# recognizersConfigMapName: ""
   container:
     resources:
       requests:
