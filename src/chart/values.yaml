@@ -2,7 +2,7 @@ registry: ghcr.io
 
 # Image pull secret
 # privateRegistry: acr-auth
-tag: latest
+tag: gha20
 
 # supported types are nginx (wip: traefik and istio)
 ingress:
