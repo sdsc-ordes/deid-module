@@ -24,7 +24,7 @@ spec:
             name: {{ default (printf "%s-recognizers-config" (trim $fullname)) .Values.analyzer.recognizersConfigMapName }}
         - name: {{ $fullname }}-analyzer-vol
           configMap:
-            name: {{ default (printf "%s-analyzer-config" (trim $fullname)) .Values.analyzer.analyzerConfigMapName }}
+            name: {{ default (printf "%s-config" (trim $fullname)) .Values.analyzer.analyzerConfigMapName }}
       containers:
       - name: {{ $fullname }}
         image: {{ .Values.registry }}/{{ .Values.analyzer.name }}:{{ default .Chart.AppVersion .Values.tag }}
