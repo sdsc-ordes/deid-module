@@ -13,7 +13,7 @@ on:
 env:
   CHART_DIR: src/chart
   REGISTRY: ghcr.io
-  CHART_REF: ghcr.io/${{ github.repository_owner }}/deid-module
+  CHART_REF: ghcr.io/${{ github.repository_owner }}/deid-module-chart
 
 jobs:
   publish-helm-chart:
