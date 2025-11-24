@@ -1,0 +1,52 @@
+{{ $fullname := include "presidio.analyzer.fullname" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}
+  labels:
+    app: {{ $fullname }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.analyzer.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $fullname }}
+  template:
+    metadata:
+      labels:
+        app: {{ $fullname }}
+    spec:
+      volumes:
+        - name: {{ $fullname }}-recognizers-vol
+          configMap:
+            name: {{ default (printf "%s-recognizers-config" (trim $fullname)) .Values.analyzer.recognizersConfigMapName }}
+        - name: {{ $fullname }}-analyzer-vol
+          configMap:
+            name: {{ default (printf "%s-config" (trim $fullname)) .Values.analyzer.analyzerConfigMapName }}
+      containers:
+      - name: {{ $fullname }}
+        image: {{ .Values.registry }}/{{ .Values.analyzer.name }}:{{ default .Chart.AppVersion .Values.tag }}
+        imagePullPolicy: {{ default "IfNotPresent" .Values.analyzer.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.analyzer.service.internalPort }}
+        resources:
+          requests:
+            memory: {{ .Values.analyzer.container.resources.requests.memory }}
+            cpu: {{ .Values.analyzer.container.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.analyzer.container.resources.limits.memory }}
+            cpu: {{ .Values.analyzer.container.resources.limits.cpu }}
+        env:
+          - name: PORT
+            value: {{ .Values.analyzer.service.internalPort | quote }}
+        volumeMounts:
+          - name: "{{ $fullname }}-recognizers-vol"
+            #TO-DO ensure this is the right path in the container
+            mountPath: /app/presidio_analyzer/conf/default_recognizers.yaml 
+          - name: "{{ $fullname }}-analyzer-vol"
+            #TO-DO ensure this is the right path in the container
+            mountPath: /app/presidio_analyzer/conf/default_analyzer.yaml 
+      {{ if .Values.privateRegistry }}imagePullSecrets:
+        - name: {{.Values.privateRegistry}}{{ end }}

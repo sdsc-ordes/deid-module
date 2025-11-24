@@ -11,40 +11,23 @@ default:
 
 # Format the whole repository.
 format *args:
-    treefmt {{args}}
+    treefmt --excludes 'src/chart/templates/*' {{args}}
 
 # Clean up external and generated manifests.
 clean:
     @echo "Cleaning up..."
     rm -rf external/{helm,ytt}/**
-    rm -rf src/**/{ytt,helm}/out
+    rm -rf build/
 
 # Render Helm charts [intermediate step before rendering ytt manifests]
 [private]
-render-helm dir="src":
+render-helm:
   # render external helm charts with our values into src/<service>/helm/out
-  fd '^helm$' {{dir}} \
-    -x sh -c 'helm template $(basename {//}) external/helm/$(basename {//}) -f {}/values.yaml --output-dir {}/out'
-
-# Render ytt manifests
-[private]
-render-ytt dir="src":
-  # render external ytt templates with our values into src/<service>/ytt/out
-  fd '^ytt$' {{dir}} \
-    -x sh -c 'ytt -f {}/values.yaml -f external/ytt/$(basename {//}) --output-files {}/out'
-
-# Render when the code was pulled in via ytt but is a helm template
-[private]
-render-ytt-extract-helm-template dir="src":
-  # render mixed ytt + helm templates with our values into src/<service>/mix/out
-  fd '^helm$' {{dir}} \
-    -x sh -c 'helm template $(basename {//}) external/ytt/$(basename {//}) -f {}/values.yaml --output-dir {}/out'
+  helm template dev src/chart -f src/chart/values.yaml --output-dir build
 
 # Render manifests
-render dir="src":
-  just fetch && \
-    just render-ytt {{dir}} && \
-    just render-ytt-extract-helm-template {{dir}} && \
+render:
+    just render-helm && \
     just format
 
 # Apply manifests in dir to the cluster.
@@ -52,7 +35,7 @@ deploy dir="src":
   # decrypts+sources the .env file and injects values into the manifests
   cd {{root_dir}} && \
     just secrets::exec-env \
-      "kubectl kustomize {{dir}} | envsubst \\\$QLEVER_ACCESS_TOKEN | kubectl apply -f -"
+      "kubectl kustomize {{dir}} | kubectl apply -f -"
 
 # Enter development shell
 dev:

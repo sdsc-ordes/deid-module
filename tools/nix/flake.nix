@@ -58,6 +58,7 @@
             jq
             just
             kubectl
+            minikube
             sops
             (import ./packages/treefmt.nix { inherit inputs pkgs; })
             vendir
