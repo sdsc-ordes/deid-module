@@ -6,4 +6,4 @@ metadata:
   name: "{{ $fullname }}-config"
 data:
   default-analyzer.yaml: |-
-    {{ .Files.Get "../conf/presidio-analyzer/default-analyzer.yaml" | indent 2 }}
+{{ .Files.Get "conf/default-analyzer.yaml" | indent 4 }}

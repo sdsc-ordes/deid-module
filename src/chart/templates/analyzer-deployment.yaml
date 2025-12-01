@@ -44,9 +44,11 @@ spec:
         volumeMounts:
           - name: "{{ $fullname }}-recognizers-vol"
             #TO-DO ensure this is the right path in the container
-            mountPath: /app/presidio_analyzer/conf/default_recognizers.yaml 
+            mountPath: /app/presidio_analyzer/conf/default_recognizers.yaml
+            subPath: default-recognizers.yaml
           - name: "{{ $fullname }}-analyzer-vol"
             #TO-DO ensure this is the right path in the container
-            mountPath: /app/presidio_analyzer/conf/default_analyzer.yaml 
+            mountPath: /app/presidio_analyzer/conf/default_analyzer.yaml
+            subPath: default-analyzer.yaml
       {{ if .Values.privateRegistry }}imagePullSecrets:
         - name: {{.Values.privateRegistry}}{{ end }}

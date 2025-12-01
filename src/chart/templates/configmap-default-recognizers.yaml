@@ -5,5 +5,5 @@ kind: ConfigMap
 metadata:
   name: "{{ $fullname }}-recognizers-config"
 data:
-  default-analyzer.yaml: |-
-    {{ .Files.Get "../conf/presidio-analyzer/default-recognizers.yaml" | indent 2 }}
+  default-recognizers.yaml: |-
+{{ .Files.Get "conf/default-recognizers.yaml" | indent 4 }}
