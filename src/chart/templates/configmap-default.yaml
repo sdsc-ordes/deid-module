@@ -1,0 +1,9 @@
+{{ $fullname := include "presidio.analyzer.fullname" . }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ $fullname }}-config"
+data:
+  default.yaml: |-
+{{ .Files.Get "conf/default.yaml" | indent 4 }}
