@@ -45,6 +45,11 @@ dev:
 fetch:
   just external::fetch
 
+# Test deploy on minikube instance
+test:
+  bash ./tests/minikube_deploy
+  minikube stop
+
 # Manage OCI images.
 [group('modules')]
 mod image 'tools/just/image.just'
