@@ -45,9 +45,11 @@ dev:
 fetch:
   just external::fetch
 
-# Manage secrets.
-[group('modules')]
-mod secrets 'tools/just/secrets.just'
+# Test deploy on minikube instance
+test:
+  bash ./tests/minikube_deploy
+  minikube stop
+
 # Manage OCI images.
 [group('modules')]
 mod image 'tools/just/image.just'

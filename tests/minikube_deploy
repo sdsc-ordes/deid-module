@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+minikube start
+
+helm uninstall presidio || true
+helm install --create-namespace presidio ./src/chart
+kubectl port-forward svc/presidio-deid-presidio-analyzer 8080:80 &
+sleep 10
+curl http://localhost:8080/analyze -s \
+  --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"text": "numéro de téléphone de Jean est +41781231212 et son code postal est 1234. Son numéro AVS le 756.2222.2222.2c","language": "fr"}' \
+ | jq

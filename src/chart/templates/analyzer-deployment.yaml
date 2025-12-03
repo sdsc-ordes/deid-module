@@ -24,7 +24,10 @@ spec:
             name: {{ default (printf "%s-recognizers-config" (trim $fullname)) .Values.analyzer.recognizersConfigMapName }}
         - name: {{ $fullname }}-analyzer-vol
           configMap:
-            name: {{ default (printf "%s-config" (trim $fullname)) .Values.analyzer.analyzerConfigMapName }}
+            name: {{ default (printf "%s-analyzer-config" (trim $fullname)) .Values.analyzer.analyzerConfigMapName }}
+        - name: {{ $fullname }}-vol
+          configMap:
+            name: {{ default (printf "%s-config" (trim $fullname)) .Values.analyzer.defaultConfigMapName }}
       containers:
       - name: {{ $fullname }}
         image: {{ .Values.registry }}/{{ .Values.analyzer.name }}:{{ default .Chart.AppVersion .Values.tag }}
@@ -43,10 +46,13 @@ spec:
             value: {{ .Values.analyzer.service.internalPort | quote }}
         volumeMounts:
           - name: "{{ $fullname }}-recognizers-vol"
-            #TO-DO ensure this is the right path in the container
-            mountPath: /app/presidio_analyzer/conf/default_recognizers.yaml 
+            mountPath: /usr/bin/presidio_analyzer/conf/default_recognizers.yaml
+            subPath: default-recognizers.yaml
           - name: "{{ $fullname }}-analyzer-vol"
-            #TO-DO ensure this is the right path in the container
-            mountPath: /app/presidio_analyzer/conf/default_analyzer.yaml 
+            mountPath: /usr/bin/presidio_analyzer/conf/default_analyzer.yaml
+            subPath: default-analyzer.yaml
+          - name: "{{ $fullname }}-vol"
+            mountPath: /usr/bin/presidio_analyzer/conf/default.yaml
+            subPath: default.yaml
       {{ if .Values.privateRegistry }}imagePullSecrets:
         - name: {{.Values.privateRegistry}}{{ end }}
