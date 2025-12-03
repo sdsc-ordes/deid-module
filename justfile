@@ -45,9 +45,6 @@ dev:
 fetch:
   just external::fetch
 
-# Manage secrets.
-[group('modules')]
-mod secrets 'tools/just/secrets.just'
 # Manage OCI images.
 [group('modules')]
 mod image 'tools/just/image.just'

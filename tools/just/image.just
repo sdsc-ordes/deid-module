@@ -1,7 +1,7 @@
 root_dir := `git rev-parse --show-toplevel`
 set shell := ["bash", "-cue"]
 ctr := "docker"
-repository := "ghcr.io/sdsc-ordes/catplus-manifests"
+repository := "ghcr.io/sdsc-ordes/deid-module"
 
 # Default recipe to list all recipes.
 [private]
