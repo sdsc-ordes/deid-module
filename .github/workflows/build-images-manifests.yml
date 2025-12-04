@@ -85,7 +85,7 @@ jobs:
 
       - name: Create all multi-platform manifests
         run: |
-          IMAGES=("presidio-anonymizer" "presidio-analyzer" "presidio-image-redactor")
+          IMAGES=("presidio-anonymizer" "presidio-analyzer")
 
           for image in "${IMAGES[@]}"; do
             echo "Creating manifest for $image"
