@@ -43,7 +43,7 @@ You may look at [`configmap-default-recognizers.yaml`](./src/chart/templates/con
 
 ## Development
 
-> ![NOTE]
+>![NOTE]
 > The following requires nix to be installed in the system ([install nix](https://docs.determinate.systems/))
 
 The repository contains a nix flake with all the tooling needed to develop and deploy the charts.
