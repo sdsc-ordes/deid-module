@@ -48,7 +48,7 @@ You may look at [`configmap-default-recognizers.yaml`](./src/chart/templates/con
 The repository contains a nix flake with all the tooling needed to develop and deploy the charts.
 If direnv and nix are installed on the system, just run `direnv allow` in the repository to activate the development shell whenever you `cd` into it.
 
-> [!NOTE]
+> [!TIP]
 > Alternatively, you can enter the devshell manually with
 > `nix develop ./tools/nix#default --accept-flake-config --command zsh`
 
