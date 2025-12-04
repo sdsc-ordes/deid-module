@@ -37,22 +37,19 @@ helm install -f custom-values.yaml --create-namespace presidio oci://ghcr.io/sds
 ```
 
 Note that the presidio configuration files are exposed through configMaps.
-The values  `analyzerConfigMapName` `defaultConfigMapName` and `recognizersConfigMapName` can be used to point to the name of an existing configMap.
+The values `analyzerConfigMapName` `defaultConfigMapName` and `recognizersConfigMapName` can be used to point to the name of an existing configMap.
 You may look at [`configmap-default-recognizers.yaml`](./src/chart/templates/configmap-default-recognizers.yaml) for an example on how to write your own configmap.
-
 
 ## Development
 
->![NOTE]
+> ![NOTE]
 > The following requires nix to be installed in the system ([install nix](https://docs.determinate.systems/))
 
 The repository contains a nix flake with all the tooling needed to develop and deploy the charts.
 If direnv and nix are installed on the system, just run `direnv allow` in the repository to activate the development shell whenever you `cd` into it.
 
->[!NOTE]
+> [!NOTE]
 > Alternatively, you can enter the devshell manually with
-> ```nix develop ./tools/nix#default --accept-flake-config --command zsh```
-
+> `nix develop ./tools/nix#default --accept-flake-config --command zsh`
 
 Additionally, a justfile contains recipes to work with the manifests. Typs `just` to list available recipes (`just` is included in the nix flake).
-
