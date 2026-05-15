@@ -16,7 +16,7 @@ format *args:
 # Clean up generated manifests.
 clean:
     @echo "Cleaning up..."
-    rm -rf build/
+    rm -rf build/ external/repos/*
 
 # Render Helm charts
 [private]
