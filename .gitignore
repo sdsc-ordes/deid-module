@@ -1,8 +1,7 @@
 .direnv/
 
 # third party manifests
-external/helm/*
-external/ytt/*
+external/repos
 external/.vendir*
 
 # Byte-compiled / optimized / DLL files
