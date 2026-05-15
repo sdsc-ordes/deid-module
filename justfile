@@ -13,16 +13,15 @@ default:
 format *args:
     treefmt --excludes 'src/chart/templates/*' {{args}}
 
-# Clean up external and generated manifests.
+# Clean up generated manifests.
 clean:
     @echo "Cleaning up..."
-    rm -rf external/{helm,ytt}/**
     rm -rf build/
 
-# Render Helm charts [intermediate step before rendering ytt manifests]
+# Render Helm charts
 [private]
 render-helm:
-  # render external helm charts with our values into src/<service>/helm/out
+  # render helm charts with our values
   helm template dev src/chart -f src/chart/values.yaml --output-dir build
 
 # Render manifests
