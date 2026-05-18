@@ -37,18 +37,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push ${{ matrix.image }} for ${{ matrix.platform }}
+      - name: Build and Push patched Presidio images
         run: |
-          # Create platform-specific tag
-          PLATFORM_TAG=$(echo "${{ matrix.platform }}" | sed 's/\//-/g')
-          cd external/repos/presidio
-          docker buildx build \
-            --platform ${{ matrix.platform }} \
-            --push \
-            --tag ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${{ matrix.image }}:${{ env.TAG }}-${PLATFORM_TAG} \
-            --cache-from type=registry,ref=${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${{ matrix.image }}:latest \
-            --cache-to type=inline \
-            ./${{ matrix.image }}
+          just image::build ${{ env.TAG }} --push
 
   create-manifests:
     name: Create Multi-Platform Manifests
