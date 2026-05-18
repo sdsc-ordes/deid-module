@@ -1,0 +1,14 @@
+name: "Setup Nix Environment"
+description: "Sets up Nix"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: cachix/install-nix-action@v30
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - name: bootstrap
+      run: |
+        nix profile install "./tools/nix#ci"
+        ./tools/ci/setup-git.sh
+      shell: bash
