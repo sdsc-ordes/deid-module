@@ -13,7 +13,7 @@ env:
 jobs:
   build-platform-images:
     name: Build presidio images.
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
     steps:
 
       - name: Checkout current repo
