@@ -60,13 +60,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - uses: ./.github/actions/setup-nix
+
       - name: Create all multi-platform manifests
         run: |
-          IMAGES=("presidio-anonymizer" "presidio-analyzer")
-
-          for image in "${IMAGES[@]}"; do
-            echo "Creating manifest for $image"
-            docker buildx imagetools create \
-              --tag ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${image}:${{ env.TAG }} \
-              ${{ env.REGISTRY_NAME }}/${{ env.USERNAME }}/${image}:${{ env.TAG }}-linux-amd64
-          done
+          nix develop --no-pure-eval --accept-flake-config "./tools/nix#ci" --command \
+            just image::create-manifests ${{ env.TAG }}
