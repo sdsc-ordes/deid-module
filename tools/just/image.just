@@ -32,7 +32,7 @@ build tag="latest" *args:
 
 
 # Create multi-platform manifests
-create-manifests: tag=latest
+create-manifests tag="latest":
   #!/usr/bin/env bash
 
   cd {{root_dir}}/external/repos/presidio
