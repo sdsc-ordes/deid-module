@@ -2,7 +2,7 @@ registry: ghcr.io
 
 # Image pull secret
 # privateRegistry: acr-auth
-tag: gha20
+tag: gha40
 
 # supported types are nginx (wip: traefik and istio)
 ingress:
@@ -14,7 +14,7 @@ ingress:
 # https://github.com/microsoft/presidio/issues/304
 
 analyzer:
-  name: sdsc-ordes/presidio-analyzer
+  name: sdsc-ordes/deid-module/presidio-analyzer
   replicas: 1
   imagePullPolicy: Always
   # analyzerConfigMapName: ""
@@ -35,7 +35,7 @@ analyzer:
     name: http
 
 anonymizer:
-  name: sdsc-ordes/presidio-anonymizer
+  name: sdsc-ordes/deid-module/presidio-anonymizer
   replicas: 1
   imagePullPolicy: Always
   container:
