@@ -22,7 +22,6 @@ jobs:
       - uses: ./.github/actions/setup-nix
 
       - name: Apply patches
-        working-directory: presidio
         run: just external::patch
 
       - name: Set up Docker Buildx
