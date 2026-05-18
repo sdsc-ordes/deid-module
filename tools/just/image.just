@@ -1,24 +1,31 @@
 root_dir := `git rev-parse --show-toplevel`
+set positional-arguments
 set shell := ["bash", "-cue"]
 ctr := "docker"
-repository := "ghcr.io/sdsc-ordes/deid-module"
+registry := "ghcr.io/sdsc-ordes/deid-module"
 
 # Default recipe to list all recipes.
 [private]
 default:
     just --list image
 
-# Build all images
-build *args:
-  cd {{root_dir}} && \
-    fd . './tools/image' \
-      --type directory \
-      --max-depth 1 \
-      -x {{ctr}} build . \
-        -f "{}/Dockerfile" \
-        -t "{{repository}}:{/}" \
-        {{args}}
+# Build all presidio images for all platforms
+build tag="latest" *args:
+  #!/usr/bin/env bash
 
-# Push all images
-push *args: build
-  {{ctr}} push -a {{repository}}
+  PLATFORMS=("linux/amd64")
+  IMAGES=("presidio-anonymizer" "presidio-analyzer")
+  cd {{root_dir}}/external/repos/presidio
+  for image in ${IMAGES[@]}; do
+    for platform in ${PLATFORMS[@]}; do
+
+      # Create platform-specific tag
+      PLATFORM_TAG=$(echo "${platform}" | sed 's/\//-/g')
+      docker buildx build \
+        {{args}} \
+        --platform "${platform}" \
+        --tag "{{registry}}/${image}:{{tag}}-${PLATFORM_TAG}" \
+        "./${image}"
+
+    done
+  done
