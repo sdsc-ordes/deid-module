@@ -13,9 +13,14 @@ fetch:
 
 # Apply local patches to external repos.
 patch: fetch
-  for repo in ./external/repos; do \
-    for patch in ./external/patches/$(basename $repo)/*; do
-      git -C $repo apply $patch
+  #!/usr/bin/env bash
+
+  cd "{{root_dir}}"
+  for repo in external/repos/*; do
+    echo "processing $repo"
+    for patch in external/patches/$(basename $repo)/*; do
+      pwd
+      git -C "$repo" apply "{{root_dir}}/${patch}";
     done
   done
 
