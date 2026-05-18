@@ -22,7 +22,8 @@ jobs:
       - uses: ./.github/actions/setup-nix
 
       - name: Apply patches
-        run: just external::patch
+        run: nix develop --no-pure-eval --accept-flake-config "./tools/nix#ci" --command \
+          "just external::patch"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -38,7 +39,8 @@ jobs:
 
       - name: Build and Push patched Presidio images
         run: |
-          just image::build ${{ env.TAG }} --push
+          nix develop --no-pure-eval --accept-flake-config "./tools/nix#ci" --command \
+            "just image::build ${{ env.TAG }} --push"
 
   create-manifests:
     name: Create Multi-Platform Manifests
