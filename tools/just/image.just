@@ -39,9 +39,10 @@ create-manifests tag="latest":
   for image in {{images}}; do
     for platform in {{platforms}}; do
 
-    echo "Creating manifest for $image"
-    PLATFORM_TAG=$(echo "${platform}" | sed 's/\//-/g')
-    docker buildx imagetools create \
-      --tag "{{registry}}/${image}:${{tag}}" \
-      "{{registry}}/${image}:{{tag}}-${PLATFORM_TAG}"
+      echo "Creating manifest for $image"
+      PLATFORM_TAG=$(echo "${platform}" | sed 's/\//-/g')
+      echo docker buildx imagetools create \
+        --tag "{{registry}}/${image}:{{tag}}" \
+        "{{registry}}/${image}:{{tag}}-${PLATFORM_TAG}"
+    done
   done
