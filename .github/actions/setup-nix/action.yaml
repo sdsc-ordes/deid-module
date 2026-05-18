@@ -7,11 +7,8 @@ runs:
     - uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixos-unstable
-
-    - name: Enter dev shell and build CLI
-      run: nix develop ./tools/nix#ci
-
     - name: bootstrap
       run: |
+        nix profile install "./tools/nix#devShells.x86_64-linux.ci"
         ./tools/ci/setup-git.sh
       shell: bash
