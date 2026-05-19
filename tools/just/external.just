@@ -18,7 +18,7 @@ patch: fetch
   cd "{{root_dir}}"
   for repo in external/repos/*; do
     echo "processing $repo"
-    for patch in external/patches/$(basename $repo)/*; do
+    for patch in external/patches/$(basename $repo)/*.patch; do
       pwd
       git -C "$repo" apply "{{root_dir}}/${patch}";
     done
