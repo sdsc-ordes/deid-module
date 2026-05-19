@@ -15,7 +15,6 @@ jobs:
     name: Build presidio images.
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout current repo
         uses: actions/checkout@v5
 
