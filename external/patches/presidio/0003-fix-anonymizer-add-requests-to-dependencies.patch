@@ -1,0 +1,26 @@
+From ba91622fe595843fa081712af02523b736da73b5 Mon Sep 17 00:00:00 2001
+From: cmdoret <cyril.mattheydoret@gmail.com>
+Date: Tue, 19 May 2026 17:54:57 +0200
+Subject: [PATCH] fix(anonymizer): add requests to dependencies
+
+---
+ presidio-anonymizer/pyproject.toml | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/presidio-anonymizer/pyproject.toml b/presidio-anonymizer/pyproject.toml
+index 89f1eeb6..dc0a5779 100644
+--- a/presidio-anonymizer/pyproject.toml
++++ b/presidio-anonymizer/pyproject.toml
+@@ -22,7 +22,8 @@ readme = "README.md"
+ 
+ requires-python = ">=3.9,<4.0"
+ dependencies = [
+-    "cryptography (<44.1)"
++    "cryptography (<44.1)",
++    "requests"
+ ]
+ 
+ [project.optional-dependencies]
+-- 
+2.48.1
+
