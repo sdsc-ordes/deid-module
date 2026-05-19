@@ -1,0 +1,38 @@
+From 788455eaa368ceee3fad299bb23df37b5905deb6 Mon Sep 17 00:00:00 2001
+From: cmdoret <cyril.mattheydoret@gmail.com>
+Date: Tue, 19 May 2026 13:18:49 +0200
+Subject: [PATCH] feat(surrogate): register surrogate operator
+
+---
+ presidio-anonymizer/presidio_anonymizer/operators/__init__.py   | 1 +
+ .../presidio_anonymizer/operators/operators_factory.py          | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/presidio-anonymizer/presidio_anonymizer/operators/__init__.py b/presidio-anonymizer/presidio_anonymizer/operators/__init__.py
+index 9b2b4da3..5f6fa770 100644
+--- a/presidio-anonymizer/presidio_anonymizer/operators/__init__.py
++++ b/presidio-anonymizer/presidio_anonymizer/operators/__init__.py
+@@ -31,6 +31,7 @@ __all__ = [
+     "Keep",
+     "DeanonymizeKeep",
+     "Replace",
++    "Surrogate",
+     "Custom",
+     "Encrypt",
+     "Decrypt",
+diff --git a/presidio-anonymizer/presidio_anonymizer/operators/operators_factory.py b/presidio-anonymizer/presidio_anonymizer/operators/operators_factory.py
+index eee2a3b2..933a032d 100644
+--- a/presidio-anonymizer/presidio_anonymizer/operators/operators_factory.py
++++ b/presidio-anonymizer/presidio_anonymizer/operators/operators_factory.py
+@@ -21,7 +21,7 @@ from presidio_anonymizer.operators import (
+ logger = logging.getLogger("presidio-anonymizer")
+ 
+ # Predefined operators
+-ANONYMIZERS = [Custom, Encrypt, Hash, Keep, Mask, Redact, Replace]
++ANONYMIZERS = [Custom, Encrypt, Hash, Keep, Mask, Redact, Replace, Surrogate]
+ if AHDS_AVAILABLE and AHDSSurrogate:
+     ANONYMIZERS.append(AHDSSurrogate)
+ 
+-- 
+2.48.1
+
