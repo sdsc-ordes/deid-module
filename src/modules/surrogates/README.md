@@ -26,16 +26,18 @@ sequenceDiagram
     participant PT as Privacy Toolbox
     participant An as Presidio-Analyzer
     participant Anon as Presidio-Anonymizer
+    participant O as Presidio-Surrogate-Operator
     participant SG as Surrogate-Generator
     participant VK as Valkey
 
     PT-)An: POST /analyze *
-    An-)An: Detect PIIs
+    An-)An: Detect PIIs in text
     An-->>PT: return Analyzer results *
     PT-)Anon: POST /anonymize ** (anonymizer set to surrogates)
-    Anon-)Anon: Extract PIIs for anonymization
-    Anon-)SG: POST /generate-surrogates
-    SG-)SG: Generate surrogates for PIIs
+    Anon-)Anon: Extract PIIs from text for anonymization
+    Anon-)O: Send PIIs one by one
+    O-)SG: POST /pii
+    SG-)SG: Generate surrogate for PII
     SG-)VK: PII?
     alt in cache
         VK->>SG: surrogate
@@ -44,7 +46,9 @@ sequenceDiagram
         SG->>VK: Insert
     end
     VK-->>SG: return surrogate if exists
-    SG-->>Anon: return PIIs replaced with surrogates
-    Anon-->>PT: return Operator Result **
+    SG-->>O: return surrogate
+    O-->>Anon: return surrogate
+    Anon-)Anon: assemble surrogates into text
+    Anon-->>PT: return text **
 ```
 
