@@ -1,19 +1,19 @@
-From 39d29f6a7e62ed27e275b9a71b25142cd1cd7902 Mon Sep 17 00:00:00 2001
+From 0d475e151be3b3362079adf922c4cb5b8f1010d6 Mon Sep 17 00:00:00 2001
 From: cmdoret <cyril.mattheydoret@gmail.com>
-Date: Tue, 19 May 2026 13:19:18 +0200
+Date: Wed, 20 May 2026 14:05:44 +0200
 Subject: [PATCH] feat(surrogate): implement surrogate operator
 
 ---
- .../operators/surrogate.py                    | 53 +++++++++++++++++++
- 1 file changed, 53 insertions(+)
+ .../operators/surrogate.py                    | 58 +++++++++++++++++++
+ 1 file changed, 58 insertions(+)
  create mode 100644 presidio-anonymizer/presidio_anonymizer/operators/surrogate.py
 
 diff --git a/presidio-anonymizer/presidio_anonymizer/operators/surrogate.py b/presidio-anonymizer/presidio_anonymizer/operators/surrogate.py
 new file mode 100644
-index 00000000..21eaed07
+index 00000000..eec05860
 --- /dev/null
 +++ b/presidio-anonymizer/presidio_anonymizer/operators/surrogate.py
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,58 @@
 +"""Replaces the PII text entity with new string."""
 +
 +import os
@@ -46,10 +46,15 @@ index 00000000..21eaed07
 +                Provide via 'endpoint' parameter 
 +                or set SURROGATE_ENDPOINT environment variable.
 +            """)
-+        resp = requests.post(endpoint, {'text': text, 'params': params})
-+        resp.raise_for_status()
 +
-+        surrogate = resp.text
++        pii = {
++            'pii': text,
++            'entity_type': params["entity_type"],
++        }
++        resp = requests.post(endpoint, pii)
++        resp.raise_for_status()
++        surrogate = resp.json()['surrogate']
++
 +        return surrogate
 +
 +    @override
