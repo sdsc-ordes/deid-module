@@ -1,3 +1,6 @@
+#Python config
+src/modules/surrogates/config/
+
 .direnv/
 
 # third party manifests
