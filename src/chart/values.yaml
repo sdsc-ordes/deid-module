@@ -51,3 +51,8 @@ anonymizer:
     externalPort: 80
     internalPort: 8080
     name: http
+surrogate:
+  name: sdsc-ordes/deid-module/surrogate
+  replicas: 1
+  service:
+    externalPort: 1010
