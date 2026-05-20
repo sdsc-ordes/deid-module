@@ -9,7 +9,7 @@ uv run main.py
 
 ## fast API
 
-### POST /generate-surrogates
+### POST /pii
 
 ## Presidio Integration
 
@@ -36,7 +36,13 @@ sequenceDiagram
     Anon-)Anon: Extract PIIs for anonymization
     Anon-)SG: POST /generate-surrogates
     SG-)SG: Generate surrogates for PIIs
-    SG-)VK: get surrogates already mapped
+    SG-)VK: PII?
+    alt in cache
+        VK->>SG: surrogate
+    else missing
+        SG->>SG: Generate
+        SG->>VK: Insert
+    end
     VK-->>SG: return surrogate if exists
     SG-->>Anon: return PIIs replaced with surrogates
     Anon-->>PT: return Operator Result **

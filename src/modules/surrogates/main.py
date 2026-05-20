@@ -1,5 +1,12 @@
-from .generator import generate_surrogates
-from .loader import load_input, load_surrogate_map, load_name_database, save_output, save_surrogate_map
+from generator import generate_surrogates
+from loader import load_input, load_surrogate_map, load_name_database, save_output, save_surrogate_map
+
+from fastapi import FastAPI
+
+app = FastAPI(title="Surrogate Generator")
+@app.post("/pii")
+async def root():
+    return {"message": "POST PIIs to get surrogates."}
 
 def main(input_file, output_file, surrogate_map_path=None):
     input = load_input(input_file)

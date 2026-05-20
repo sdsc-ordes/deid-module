@@ -5,8 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.136.1",
+    "fastapi[standard]>=0.136.1",
     "fuzzywuzzy>=0.18.0",
     "gender-guesser>=0.4.0",
     "pandas>=3.0.3",
 ]
+
+[tool.fastapi]
+app = "main:app"
