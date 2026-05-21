@@ -1,10 +1,24 @@
 # Surrogates
 
-## set-up
+## Run
+
+```bash
+curl -X POST http://127.0.0.1:8000/pii \
+  -H "Content-Type: application/json" \
+  -d '{"pii": "Jean", "entity": "[[NAME]]"}'
+```
+
+### Local
 
 ```python
-uv sync
-uv run main.py
+uv run fastapi dev
+```
+
+### Dockerize
+
+```
+docker build -t fastapi-app .
+docker run -p 8000:80 fastapi-app
 ```
 
 ## fast API
