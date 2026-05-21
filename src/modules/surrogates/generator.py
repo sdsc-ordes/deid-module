@@ -27,7 +27,7 @@ import gender_guesser.detector as gender
     # [[PersonalRelationship]]
     # [[Organization]]
 
-def generate_surrogates(pii, entity, surrogate_map, name_db, parameters=None):
+def generate_surrogate(pii, entity, surrogate_map, name_db, parameters=None):
     """
     Generate surrogate values for entities in the input CSV file and save to output CSV file.
     
@@ -51,6 +51,7 @@ def generate_surrogates(pii, entity, surrogate_map, name_db, parameters=None):
             surrogate = generate_name_surrogate(pii, surrogate_map, name_db)
         case '[[LOCATION]]':
             surrogate = generate_location_surrogate(pii, surrogate_map)
+            print(f"Generated surrogate for location: {pii} -> {surrogate}")
         case '[[DATE]]':
             surrogate = generate_date_surrogate(pii, surrogate_map, parameters['year_shift'])
         case '[[CONTACT]]':
@@ -112,11 +113,8 @@ def generate_name_surrogate(pii, surrogate_map, name_db):
                 predicted_gender = d.get_gender(pii)
                 first_letter = name[0]
                 surrogate = name_db.pick_random(predicted_gender, first_letter)
-                 # if no file, use a default name
-                surrogate_name += surrogate + ' '# add to the surrogate name
-                # add the new surrogate to the map
                 surrogate_map.add(name, surrogate, '[[NAME]]')
-    return surrogate_name
+    return surrogate
 
 
 def replace_digits(pii):

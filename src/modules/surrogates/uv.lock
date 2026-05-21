@@ -1029,6 +1029,8 @@ dependencies = [
     { name = "fuzzywuzzy" },
     { name = "gender-guesser" },
     { name = "pandas" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
 ]
 
 [package.metadata]
@@ -1037,6 +1039,8 @@ requires-dist = [
     { name = "fuzzywuzzy", specifier = ">=0.18.0" },
     { name = "gender-guesser", specifier = ">=0.4.0" },
     { name = "pandas", specifier = ">=3.0.3" },
+    { name = "pydantic", specifier = ">=2.13.4" },
+    { name = "python-dotenv", specifier = ">=1.2.2" },
 ]
 
 [[package]]

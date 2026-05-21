@@ -9,7 +9,15 @@ uv run main.py
 
 ## fast API
 
+Launch FastAPI server with `uv run fastapi dev`. 
+
 ### POST /pii
+
+```curl
+curl -X POST http://127.0.0.1:8000/pii \
+  -H "Content-Type: application/json" \
+  -d '{"pii": "Jean Dupont", "entity": "[[NAME]]"}'
+```
 
 ## Presidio Integration
 
