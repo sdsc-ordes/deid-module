@@ -12,7 +12,7 @@ load_dotenv()
 
 class PiiPayload(BaseModel):
     pii: str = Field(description="Personal Identifiable Information value to be surrogated, e.g. 'John Doe', '01/01/1990', 'New York'")
-    entity: str = Field(
+    entity_type: str = Field(
         description="Entity tag, e.g. '[[NAME]]', '[[LOCATION]]', '[[DATE]]'",
     )
 
@@ -32,12 +32,12 @@ app = FastAPI(title="Surrogate Generator", lifespan=lifespan)
 def generate_pii_surrogate(body: PiiPayload, request: Request):
     surrogate = generate_surrogate(
         body.pii,
-        body.entity,
+        body.entity_type,
         request.app.state.surrogate_map,
         request.app.state.name_db,
     )
     return {
         "pii": body.pii,
-        "entity": body.entity,
+        "entity_type": body.entity_type,
         "surrogate": surrogate,
     }

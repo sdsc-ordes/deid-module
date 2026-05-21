@@ -4,30 +4,30 @@ import random
 
 import gender_guesser.detector as gender
 
-# PURPOSE: This script aims to generate surrogate values for different entity types based on predefined rules and datasets.
-# <USAGE> python piiDEID_surrogate_generation.py <entity_file> <output_file>
+# PURPOSE: This script aims to generate surrogate values for different entity_type types based on predefined rules and datasets.
+# <USAGE> python piiDEID_surrogate_generation.py <entity_type_file> <output_file>
 
 # ENTITY TYPES TO BE PROCESSED
-    # [[NAME]] – include patient, doctor, other names
-    # [[LOCATION]] – include all address information, postal code
-    # [[DATE]] - include all dates and time
-    # [[CONTACT]]  – include telephone (fax) and emails
-    # [[ID: PatientID]]
-    # [[ID: StayID]]
-    # [[NUMBER: Account]]
-    # [[URL]]
-    # [[IPAdress]]
-    # [[DEMOGRAPHIC: Age]]
-    # [[DEMOGRAPHIC: CivilStatus]]
-    # [[DEMOGRAPHIC: Nationality]]
-    # [[DEMOGRAPHIC: Profession]]
-    # [[HOSPITAL: Service]]
-    # [[HOSPITAL: Building]]
-    # [[HOSPITAL: Room-Bed]] 
-    # [[PersonalRelationship]]
-    # [[Organization]]
+    # NAME – include patient, doctor, other names
+    # LOCATION – include all address information, postal code
+    # DATE - include all dates and time
+    # CONTACT  – include telephone (fax) and emails
+    # ID: PatientID
+    # ID: StayID
+    # NUMBER: Account
+    # URL
+    # IPAdress
+    # DEMOGRAPHIC: Age
+    # DEMOGRAPHIC: CivilStatus
+    # DEMOGRAPHIC: Nationality
+    # DEMOGRAPHIC: Profession
+    # HOSPITAL: Service
+    # HOSPITAL: Building
+    # HOSPITAL: Room-Bed 
+    # PersonalRelationship
+    # Organization
 
-def generate_surrogate(pii, entity, surrogate_map, name_db, parameters=None):
+def generate_surrogate(pii, entity_type, surrogate_map, name_db, parameters=None):
     """
     Generate surrogate values for entities in the input CSV file and save to output CSV file.
     
@@ -46,47 +46,46 @@ def generate_surrogate(pii, entity, surrogate_map, name_db, parameters=None):
             'year_shift':3,
         }
 
-    match entity:  
-        case '[[NAME]]' | '[[PERSON]]':
+    match entity_type:  
+        case 'NAME' | 'PERSON':
             surrogate = generate_name_surrogate(pii, surrogate_map, name_db)
-        case '[[LOCATION]]':
+        case 'LOCATION':
             surrogate = generate_location_surrogate(pii, surrogate_map)
             print(f"Generated surrogate for location: {pii} -> {surrogate}")
-        case '[[DATE]]':
+        case 'DATE':
             surrogate = generate_date_surrogate(pii, surrogate_map, parameters['year_shift'])
-        case '[[CONTACT]]':
+        case 'CONTACT':
             surrogate = generate_contact_surrogate(pii, surrogate_map)
-        case '[[ID: PatientID]]':
+        case 'PATIENTID':
             surrogate = generate_number_surrogate(pii, surrogate_map)
-        case '[[ID: StayID]]':
+        case 'STAYID':
             surrogate = generate_number_surrogate(pii, surrogate_map)
-        case '[[NUMBER: Account]]':
+        case 'ACCOUNT':
             surrogate = generate_number_surrogate(pii, surrogate_map)
-        case '[[URL]]':
+        case 'URL':
             surrogate = generate_url_surrogate(pii, surrogate_map)
-        case '[[IPAdress]]':
+        case 'IPADDRESS':
             surrogate = generate_number_surrogate(pii, surrogate_map)
-        case '[[DEMOGRAPHIC: Age]]':
+        case 'AGE':
             surrogate = generate_age_surrogate(pii, surrogate_map, parameters['year_shift'])
-        case '[[DEMOGRAPHIC: CivilStatus]]':
+        case 'CIVILSTATUS':
             surrogate = generate_civil_status_surrogate(pii, surrogate_map)
-        case '[[DEMOGRAPHIC: Nationality]]':
+        case 'NATIONALITY':
             surrogate = generate_nationality_surrogate(pii, surrogate_map)
-        case '[[DEMOGRAPHIC: Profession]]':
+        case 'PROFESSION':
             surrogate = generate_profession_surrogate(pii, surrogate_map)
-        case '[[HOSPITAL: Service]]':
+        case 'SERVICE':
             surrogate = generate_hospital_service_surrogate(pii, surrogate_map)
-        case '[[HOSPITAL: Building]]':
+        case 'BUILDING':
             surrogate = generate_hospital_building_surrogate(pii, surrogate_map)
-        case '[[HOSPITAL: Room-Bed]]':
+        case 'ROOMBED':
             surrogate = generate_hospital_room_bed_surrogate(pii, surrogate_map)
-        case '[[PersonalRelationship]]':
+        case 'PERSONALRELATIONSHIP':
             surrogate = generate_personal_relationship_surrogate(pii, surrogate_map)
-        case '[[Organization]]':
+        case 'ORGANIZATION':
             surrogate = generate_organization_surrogate(pii, surrogate_map)
         case _:
-            surrogate = pii  # No change for unrecognized entities
-    print(f"Surrogate generation completed.")
+            surrogate = 'REDACTED'
     return surrogate
 
 
@@ -113,7 +112,7 @@ def generate_name_surrogate(pii, surrogate_map, name_db):
                 predicted_gender = d.get_gender(pii)
                 first_letter = name[0]
                 surrogate = name_db.pick_random(predicted_gender, first_letter)
-                surrogate_map.add(name, surrogate, '[[NAME]]')
+                surrogate_map.add(name, surrogate, 'NAME')
     return surrogate
 
 
@@ -137,7 +136,7 @@ def generate_location_surrogate(pii, surrogate_map):
         # generate a fake address
         surrogate = 'Ville_'+pii[0].upper()
     
-    surrogate_map.add(pii, surrogate, '[[LOCATION]]')
+    surrogate_map.add(pii, surrogate, 'LOCATION')
     return surrogate
 
 def generate_date_surrogate(pii, surrogate_map, year_shift):
@@ -197,7 +196,7 @@ def generate_date_surrogate(pii, surrogate_map, year_shift):
     else:
         surrogate = pii  # If parsing fails, keep the original pii
 
-    surrogate_map.add(pii, surrogate, '[[DATE]]')
+    surrogate_map.add(pii, surrogate, 'DATE')
     return surrogate
 
 
@@ -221,7 +220,7 @@ def generate_contact_surrogate(pii, surrogate_map):
     else:
         surrogate = pii  # If it doesn't match known patterns, keep original
     
-    surrogate_map.add(pii, surrogate, '[[CONTACT]]')
+    surrogate_map.add(pii, surrogate, 'CONTACT')
     return surrogate
 
 def generate_number_surrogate(pii, surrogate_map):
@@ -232,7 +231,7 @@ def generate_number_surrogate(pii, surrogate_map):
 
     surrogate = replace_digits(pii)
     
-    surrogate_map.add(pii, surrogate, '[[NUMBER]]')
+    surrogate_map.add(pii, surrogate, 'NUMBER')
     return surrogate 
 
 def generate_url_surrogate(pii, surrogate_map):
@@ -244,7 +243,7 @@ def generate_url_surrogate(pii, surrogate_map):
     # Simple URL surrogate generation
     surrogate = 'http://www.' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=8)) + '.com'
     
-    surrogate_map.add(pii, surrogate, '[[URL]]')
+    surrogate_map.add(pii, surrogate, 'URL')
     return surrogate
 
 def generate_age_surrogate(pii, surrogate_map, year_shift):
@@ -262,7 +261,7 @@ def generate_age_surrogate(pii, surrogate_map, year_shift):
     else:
         surrogate = pii  # If parsing fails, keep the original pii
     
-    surrogate_map.add(pii, surrogate, '[[DEMOGRAPHIC: Age]]')
+    surrogate_map.add(pii, surrogate, 'DEMOGRAPHIC: Age')
     return surrogate
 
 def generate_civil_status_surrogate(pii, surrogate_map):
@@ -276,7 +275,7 @@ def generate_civil_status_surrogate(pii, surrogate_map):
     # civil_status_options = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated', 'In a relationship']
     # surrogate = random.choice(civil_status_options)
 
-    surrogate_map.add(pii, surrogate, '[[DEMOGRAPHIC: CivilStatus]]')
+    surrogate_map.add(pii, surrogate, 'DEMOGRAPHIC: CivilStatus')
     return surrogate
 
 def generate_nationality_surrogate(pii, surrogate_map):
@@ -288,7 +287,7 @@ def generate_nationality_surrogate(pii, surrogate_map):
     # replace nationality with 'Nationality-UNKNOWN'
     surrogate = 'Nationality-UNKNOWN'
 
-    surrogate_map.add(pii, surrogate, '[[DEMOGRAPHIC: Nationality]]')    
+    surrogate_map.add(pii, surrogate, 'DEMOGRAPHIC: Nationality')    
     return surrogate
 
 def generate_profession_surrogate(pii, surrogate_map):
@@ -300,7 +299,7 @@ def generate_profession_surrogate(pii, surrogate_map):
     # replace profession with 'Profession-UNKNOWN'
     surrogate = 'Profession-UNKNOWN'
 
-    surrogate_map.add(pii, surrogate, '[[DEMOGRAPHIC: Profession]]')
+    surrogate_map.add(pii, surrogate, 'DEMOGRAPHIC: Profession')
     return surrogate 
 
 def generate_hospital_service_surrogate(pii, surrogate_map):
@@ -312,7 +311,7 @@ def generate_hospital_service_surrogate(pii, surrogate_map):
     # Simple surrogate generation for hospital service
     surrogate = 'HospitalService-' + pii[0].upper()
         
-    surrogate_map.add(pii, surrogate, '[[HOSPITAL: Service]]')
+    surrogate_map.add(pii, surrogate, 'HOSPITAL: Service')
     return surrogate 
 
 def generate_hospital_building_surrogate(pii, surrogate_map):
@@ -324,7 +323,7 @@ def generate_hospital_building_surrogate(pii, surrogate_map):
     # Simple surrogate generation for hospital building
     surrogate = 'Building-' + pii[0].upper()
        
-    surrogate_map.add(pii, surrogate, '[[HOSPITAL: Building]]')
+    surrogate_map.add(pii, surrogate, 'HOSPITAL: Building')
     return surrogate
 
 def generate_hospital_room_bed_surrogate(pii, surrogate_map):
@@ -336,7 +335,7 @@ def generate_hospital_room_bed_surrogate(pii, surrogate_map):
     # Simple surrogate generation for hospital room/bed
     surrogate = 'Room-' + ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=3))
       
-    surrogate_map.add(pii, surrogate, '[[HOSPITAL: Room-Bed]]')
+    surrogate_map.add(pii, surrogate, 'HOSPITAL: Room-Bed')
     return surrogate 
 
 def generate_personal_relationship_surrogate(pii, surrogate_map):
@@ -348,7 +347,7 @@ def generate_personal_relationship_surrogate(pii, surrogate_map):
     # replace personal relationship with 'Relationship-UNKNOWN'
     surrogate = 'Relationship-UNKNOWN'
     
-    surrogate_map.add(pii, surrogate, '[[PersonalRelationship]]')
+    surrogate_map.add(pii, surrogate, 'PersonalRelationship')
     return surrogate 
 
 def generate_organization_surrogate(pii, surrogate_map):
@@ -360,5 +359,5 @@ def generate_organization_surrogate(pii, surrogate_map):
     # replace organization with 'Organization-UNKNOWN'
     surrogate = 'Organization-UNKNOWN'
        
-    surrogate_map.add(pii, surrogate, '[[Organization]]')
+    surrogate_map.add(pii, surrogate, 'Organization')
     return surrogate 
