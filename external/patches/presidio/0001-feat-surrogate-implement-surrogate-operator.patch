@@ -1,6 +1,6 @@
-From 0d475e151be3b3362079adf922c4cb5b8f1010d6 Mon Sep 17 00:00:00 2001
+From 7d6e28632ff6ae17322d888d729aae398d8c357f Mon Sep 17 00:00:00 2001
 From: cmdoret <cyril.mattheydoret@gmail.com>
-Date: Wed, 20 May 2026 14:05:44 +0200
+Date: Thu, 21 May 2026 15:32:01 +0200
 Subject: [PATCH] feat(surrogate): implement surrogate operator
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH] feat(surrogate): implement surrogate operator
 
 diff --git a/presidio-anonymizer/presidio_anonymizer/operators/surrogate.py b/presidio-anonymizer/presidio_anonymizer/operators/surrogate.py
 new file mode 100644
-index 00000000..eec05860
+index 00000000..88e429af
 --- /dev/null
 +++ b/presidio-anonymizer/presidio_anonymizer/operators/surrogate.py
 @@ -0,0 +1,58 @@
@@ -51,7 +51,7 @@ index 00000000..eec05860
 +            'pii': text,
 +            'entity_type': params["entity_type"],
 +        }
-+        resp = requests.post(endpoint, pii)
++        resp = requests.post(f"{endpoint}/pii", json=pii)
 +        resp.raise_for_status()
 +        surrogate = resp.json()['surrogate']
 +
