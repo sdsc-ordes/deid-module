@@ -5,7 +5,7 @@
 ```bash
 curl -X POST http://127.0.0.1:8000/pii \
   -H "Content-Type: application/json" \
-  -d '{"pii": "Jean", "entity": "[[NAME]]"}'
+  -d '{"pii": "Bob", "entity_type": "NAME"}'
 ```
 
 ### Local
@@ -23,7 +23,7 @@ docker run -p 8000:80 fastapi-app
 
 ## fast API
 
-Launch FastAPI server with `uv run fastapi dev`. 
+Launch FastAPI server with `uv run fastapi dev`.
 
 ### POST /pii
 
@@ -39,9 +39,8 @@ Here is the expected flow of this module for its integration with Presidio.
 
 Key references:
 
-- *[Presidio API documentation for Analyzer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Analyzer)
-- **[Presidio API documentation for Anonymizer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Anonymizer)
-
+- \*[Presidio API documentation for Analyzer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Analyzer)
+- \*\*[Presidio API documentation for Anonymizer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Anonymizer)
 
 ```mermaid
 sequenceDiagram
@@ -73,4 +72,3 @@ sequenceDiagram
     Anon-)Anon: assemble surrogates into text
     Anon-->>PT: return text **
 ```
-

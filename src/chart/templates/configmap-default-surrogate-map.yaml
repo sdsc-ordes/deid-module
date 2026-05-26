@@ -1,0 +1,9 @@
+{{ $fullname := include "surrogate.fullname" . }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ $fullname }}-surrogate-map-config"
+data:
+  surrogate_map.csv: |-
+{{ .Files.Get "conf/surrogate/surrogate_map.csv" | indent 4 }}

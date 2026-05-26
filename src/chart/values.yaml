@@ -51,8 +51,22 @@ anonymizer:
     externalPort: 80
     internalPort: 8080
     name: http
+
 surrogate:
   name: sdsc-ordes/deid-module/surrogate
   replicas: 1
+  imagePullPolicy: Always
+  mapStorage: 1Gi
+  container:
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
   service:
+    type: ClusterIP
     externalPort: 1010
+    internalPort: 80
+    name: http

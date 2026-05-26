@@ -1,0 +1,13 @@
+{{ $fullname := include "surrogate.fullname" . }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $fullname }}-map
+  labels:
+    app: {{ $fullname }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.surrogate.mapStorage }}

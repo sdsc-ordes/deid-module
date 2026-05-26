@@ -1,0 +1,20 @@
+{{ $fullname := include "surrogate.fullname" . }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}
+  labels:
+    app: {{ $fullname }}
+    service: {{ $fullname }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  type: {{ .Values.surrogate.service.type }}
+  ports:
+  - port: {{ .Values.surrogate.service.externalPort }}
+    targetPort: {{ .Values.surrogate.service.internalPort }}
+    protocol: TCP
+    name: {{ .Values.surrogate.service.name }}
+  selector:
+    app: {{ $fullname }}

@@ -1,0 +1,19 @@
+{{/*
+  ConfigMap data keys must match [-._a-zA-Z0-9]+ (Kubernetes API; not configurable).
+  Non-ASCII name files in chart/conf use enc.<hex>_group.txt; loader decodes them.
+*/}}
+{{ $fullname := include "surrogate.fullname" . }}
+{{- range $index, $gender := list "female" "male" "unisex" }}
+{{- if $index }}
+---
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ $fullname }}-surrogate-names-{{ $gender }}"
+data:
+{{- range $path, $_ := $.Files.Glob (printf "conf/surrogate/surrogate_db/surrogate_names/%s/*_group.txt" $gender) }}
+  {{ base $path }}: |-
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
+{{- end }}

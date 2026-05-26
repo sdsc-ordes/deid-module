@@ -1,9 +1,17 @@
 import pandas as pd
 import os
+import re
 from pathlib import Path
 import random
 from fuzzywuzzy import fuzz
 from dataclasses import dataclass
+
+def letter_from_group_filename(filename: str) -> str:
+    """Map *_group.txt filename to the first-letter bucket (e.g. enc.c3a9 -> é)."""
+    stem = filename.removesuffix("_group.txt")
+    if stem.startswith("enc."):
+        return bytes.fromhex(stem[4:]).decode("utf-8")
+    return stem
 
 @dataclass(frozen=True, slots=True)
 class MapEntry:
@@ -88,7 +96,7 @@ class NameDatabase:
             if not gender_dir.is_dir():
                 continue
             for group_file in sorted(gender_dir.glob("*_group.txt")):
-                letter = group_file.stem.removesuffix("_group")  # a_group.txt -> "a"
+                letter = letter_from_group_filename(group_file.name)
                 names = self._read_group_file(group_file)
                 if names:
                     cache[(gender, letter)] = names

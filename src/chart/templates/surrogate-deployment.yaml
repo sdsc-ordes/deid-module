@@ -1,0 +1,78 @@
+{{ $fullname := include "surrogate.fullname" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}
+  labels:
+    app: {{ $fullname }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.surrogate.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $fullname }}
+  template:
+    metadata:
+      labels:
+        app: {{ $fullname }}
+    spec:
+      initContainers:
+        - name: seed-surrogate-map
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /data/surrogate_map.csv ]; then
+                cp /seed/surrogate_map.csv /data/surrogate_map.csv
+              fi
+          volumeMounts:
+            - name: {{ $fullname }}-surrogate-map-seed-vol
+              mountPath: /seed
+            - name: {{ $fullname }}-surrogate-map-data-vol
+              mountPath: /data
+      volumes:
+        - name: {{ $fullname }}-surrogate-names-female-vol
+          configMap:
+            name: {{ default (printf "%s-surrogate-names-female" (trim $fullname)) .Values.surrogate.surrogateNamesFemaleConfigMapName }}
+        - name: {{ $fullname }}-surrogate-names-male-vol
+          configMap:
+            name: {{ default (printf "%s-surrogate-names-male" (trim $fullname)) .Values.surrogate.surrogateNamesMaleConfigMapName }}
+        - name: {{ $fullname }}-surrogate-names-unisex-vol
+          configMap:
+            name: {{ default (printf "%s-surrogate-names-unisex" (trim $fullname)) .Values.surrogate.surrogateNamesUnisexConfigMapName }}
+        - name: {{ $fullname }}-surrogate-map-seed-vol
+          configMap:
+            name: {{ default (printf "%s-surrogate-map-config" (trim $fullname)) .Values.surrogate.surrogateMapConfigMapName }}
+        - name: {{ $fullname }}-surrogate-map-data-vol
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-map
+      containers:
+      - name: {{ $fullname }}
+        image: {{ .Values.registry }}/{{ .Values.surrogate.name }}:{{ default .Chart.AppVersion .Values.tag }}
+        imagePullPolicy: {{ default "IfNotPresent" .Values.surrogate.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.surrogate.service.internalPort }}
+        resources:
+          requests:
+            memory: {{ .Values.surrogate.container.resources.requests.memory }}
+            cpu: {{ .Values.surrogate.container.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.surrogate.container.resources.limits.memory }}
+            cpu: {{ .Values.surrogate.container.resources.limits.cpu }}
+        envFrom:
+          - configMapRef:
+              name: {{ default (printf "%s-surrogate-config" (trim $fullname)) .Values.surrogate.defaultConfigMapName }}
+        volumeMounts:
+          - name: {{ $fullname }}-surrogate-names-female-vol
+            mountPath: /app/conf/surrogate_db/surrogate_names/female
+          - name: {{ $fullname }}-surrogate-names-male-vol
+            mountPath: /app/conf/surrogate_db/surrogate_names/male
+          - name: {{ $fullname }}-surrogate-names-unisex-vol
+            mountPath: /app/conf/surrogate_db/surrogate_names/unisex
+          - name: {{ $fullname }}-surrogate-map-data-vol
+            mountPath: /app/data
+      {{ if .Values.privateRegistry }}imagePullSecrets:
+        - name: {{.Values.privateRegistry}}{{ end }}
