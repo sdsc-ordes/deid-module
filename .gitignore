@@ -1,5 +1,6 @@
-#Python config
+#Python config files: surrogate map and surrogate names' files
 src/modules/surrogate/config/
+src/chart/conf/surrogate/
 
 .direnv/
 

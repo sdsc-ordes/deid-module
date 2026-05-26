@@ -5,7 +5,7 @@
 ```bash
 curl -X POST http://127.0.0.1:8000/pii \
   -H "Content-Type: application/json" \
-  -d '{"pii": "Jean", "entity": "[[NAME]]"}'
+  -d '{"pii": "Jean", "entity_type": "NAME"}'
 ```
 
 ### Local

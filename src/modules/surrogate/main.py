@@ -13,7 +13,7 @@ load_dotenv()
 class PiiPayload(BaseModel):
     pii: str = Field(description="Personal Identifiable Information value to be surrogated, e.g. 'John Doe', '01/01/1990', 'New York'")
     entity_type: str = Field(
-        description="Entity tag, e.g. '[[NAME]]', '[[LOCATION]]', '[[DATE]]'",
+        description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'",
     )
 
 @asynccontextmanager

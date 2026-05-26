@@ -7,27 +7,7 @@ import gender_guesser.detector as gender
 # PURPOSE: This script aims to generate surrogate values for different entity_type types based on predefined rules and datasets.
 # <USAGE> python piiDEID_surrogate_generation.py <entity_type_file> <output_file>
 
-# ENTITY TYPES TO BE PROCESSED
-    # NAME – include patient, doctor, other names
-    # LOCATION – include all address information, postal code
-    # DATE - include all dates and time
-    # CONTACT  – include telephone (fax) and emails
-    # ID: PatientID
-    # ID: StayID
-    # NUMBER: Account
-    # URL
-    # IPAdress
-    # DEMOGRAPHIC: Age
-    # DEMOGRAPHIC: CivilStatus
-    # DEMOGRAPHIC: Nationality
-    # DEMOGRAPHIC: Profession
-    # HOSPITAL: Service
-    # HOSPITAL: Building
-    # HOSPITAL: Room-Bed 
-    # PersonalRelationship
-    # Organization
-
-def generate_surrogate(pii, entity_type, surrogate_map, name_db, parameters=None):
+def generate_surrogate(pii: str, entity_type: str, surrogate_map: pd.DataFrame, name_db: pd.DataFrame, parameters=None) -> str:
     """
     Generate surrogate values for entities in the input CSV file and save to output CSV file.
     
@@ -89,7 +69,7 @@ def generate_surrogate(pii, entity_type, surrogate_map, name_db, parameters=None
     return surrogate
 
 
-def generate_name_surrogate(pii, surrogate_map, name_db):
+def generate_name_surrogate(pii: str, surrogate_map: pd.DataFrame, name_db: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -116,14 +96,14 @@ def generate_name_surrogate(pii, surrogate_map, name_db):
     return surrogate
 
 
-def replace_digits(pii):
+def replace_digits(pii: str) -> str:
     def random_digit(_):
         return str(random.randint(0, 9))
     
     return re.sub(r'\d', random_digit, pii)
 
 
-def generate_location_surrogate(pii, surrogate_map):
+def generate_location_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -139,7 +119,8 @@ def generate_location_surrogate(pii, surrogate_map):
     surrogate_map.add(pii, surrogate, 'LOCATION')
     return surrogate
 
-def generate_date_surrogate(pii, surrogate_map, year_shift):
+
+def generate_date_surrogate(pii: str, surrogate_map: pd.DataFrame, year_shift: int):
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -200,7 +181,7 @@ def generate_date_surrogate(pii, surrogate_map, year_shift):
     return surrogate
 
 
-def generate_contact_surrogate(pii, surrogate_map):
+def generate_contact_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -223,7 +204,7 @@ def generate_contact_surrogate(pii, surrogate_map):
     surrogate_map.add(pii, surrogate, 'CONTACT')
     return surrogate
 
-def generate_number_surrogate(pii, surrogate_map):
+def generate_number_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -234,7 +215,7 @@ def generate_number_surrogate(pii, surrogate_map):
     surrogate_map.add(pii, surrogate, 'NUMBER')
     return surrogate 
 
-def generate_url_surrogate(pii, surrogate_map):
+def generate_url_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -246,7 +227,7 @@ def generate_url_surrogate(pii, surrogate_map):
     surrogate_map.add(pii, surrogate, 'URL')
     return surrogate
 
-def generate_age_surrogate(pii, surrogate_map, year_shift):
+def generate_age_surrogate(pii: str, surrogate_map: pd.DataFrame, year_shift: int) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -264,7 +245,7 @@ def generate_age_surrogate(pii, surrogate_map, year_shift):
     surrogate_map.add(pii, surrogate, 'DEMOGRAPHIC: Age')
     return surrogate
 
-def generate_civil_status_surrogate(pii, surrogate_map):
+def generate_civil_status_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -278,7 +259,7 @@ def generate_civil_status_surrogate(pii, surrogate_map):
     surrogate_map.add(pii, surrogate, 'DEMOGRAPHIC: CivilStatus')
     return surrogate
 
-def generate_nationality_surrogate(pii, surrogate_map):
+def generate_nationality_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -290,7 +271,7 @@ def generate_nationality_surrogate(pii, surrogate_map):
     surrogate_map.add(pii, surrogate, 'DEMOGRAPHIC: Nationality')    
     return surrogate
 
-def generate_profession_surrogate(pii, surrogate_map):
+def generate_profession_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -302,7 +283,7 @@ def generate_profession_surrogate(pii, surrogate_map):
     surrogate_map.add(pii, surrogate, 'DEMOGRAPHIC: Profession')
     return surrogate 
 
-def generate_hospital_service_surrogate(pii, surrogate_map):
+def generate_hospital_service_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -314,7 +295,7 @@ def generate_hospital_service_surrogate(pii, surrogate_map):
     surrogate_map.add(pii, surrogate, 'HOSPITAL: Service')
     return surrogate 
 
-def generate_hospital_building_surrogate(pii, surrogate_map):
+def generate_hospital_building_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -326,7 +307,7 @@ def generate_hospital_building_surrogate(pii, surrogate_map):
     surrogate_map.add(pii, surrogate, 'HOSPITAL: Building')
     return surrogate
 
-def generate_hospital_room_bed_surrogate(pii, surrogate_map):
+def generate_hospital_room_bed_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -338,7 +319,7 @@ def generate_hospital_room_bed_surrogate(pii, surrogate_map):
     surrogate_map.add(pii, surrogate, 'HOSPITAL: Room-Bed')
     return surrogate 
 
-def generate_personal_relationship_surrogate(pii, surrogate_map):
+def generate_personal_relationship_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:
@@ -350,7 +331,7 @@ def generate_personal_relationship_surrogate(pii, surrogate_map):
     surrogate_map.add(pii, surrogate, 'PersonalRelationship')
     return surrogate 
 
-def generate_organization_surrogate(pii, surrogate_map):
+def generate_organization_surrogate(pii: str, surrogate_map: pd.DataFrame) -> str:
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.check_exists_in_map(pii)
     if exists:

@@ -3,13 +3,14 @@ import os
 from pathlib import Path
 import random
 from fuzzywuzzy import fuzz
-from dataclasses import dataclass
+from pydantic import BaseModel, Field
 
-@dataclass(frozen=True, slots=True)
-class MapEntry:
+class MapEntry(BaseModel):
     word: str
     surrogate: str
-    entity: str
+    entity: str = Field(
+        description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'",
+    )
 
 
 class SurrogateMap:
