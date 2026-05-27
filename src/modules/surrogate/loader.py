@@ -17,7 +17,7 @@ class SurrogateMap:
     """In-memory surrogate map. CSV is read at load and written at save only."""
 
     def __init__(self, map_path) -> None:
-        self._map: list[MapEntry] = []
+        self._map: set[MapEntry] = []
         self._load_from_csv(map_path)
 
     def _load_from_csv(self, path: str | None):
