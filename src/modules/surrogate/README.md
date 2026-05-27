@@ -1,12 +1,8 @@
 # Surrogates
 
-## Run
+## Usage
 
-```bash
-curl -X POST http://127.0.0.1:8000/pii \
-  -H "Content-Type: application/json" \
-  -d '{"pii": "Jean", "entity_type": "NAME"}'
-```
+After starting the server, go to `http://127.0.0.1:80/docs` to read the API documentation.
 
 ### Local
 
