@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
 from generator import generate_surrogate
-from loader import NameDatabase, SurrogateMap
+from loader import NameDatabase, JsonMap
 
 from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field
@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     map_path = os.environ.get("SURROGATE_MAP_PATH")
     names_db_path = os.environ.get("SURROGATE_NAMES_DB_PATH")
     app.state.names_db = NameDatabase(names_db_path)
-    app.state.surrogate_map = SurrogateMap(map_path)
+    app.state.surrogate_map = JsonMap(map_path)
     yield
     app.state.surrogate_map.save_to_json()
 

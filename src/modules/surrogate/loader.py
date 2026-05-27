@@ -2,6 +2,8 @@ import json
 import os
 import random
 from pathlib import Path
+from typing import Protocol
+from abc import abstractmethod
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,8 +19,16 @@ class MapEntry(BaseModel):
 
 class SurrogateMap(Protocol):
 
+    @abstractmethod
+    def insert(self, pii: str, surrogate: str, entity_type: str):    # Method without a default implementation
+        raise NotImplementedError
+    
+    @abstractmethod
+    def exists_in_map(self, pii: str) -> tuple[bool, str | None]:    # Method without a default implementation
+        raise NotImplementedError
 
-class SurrogateMap:
+
+class JsonMap (SurrogateMap):
     """In-memory surrogate map backed by a set; persisted as JSON."""
 
     def __init__(self, map_path: str | None) -> None:
