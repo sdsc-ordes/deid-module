@@ -31,7 +31,7 @@ class SurrogateMap:
             return pd.DataFrame(columns=["word", "surrogate", "entity"])
         return pd.DataFrame(
             [
-                {"word": e.word, "surrogate": e.surrogate, "entity": e.entity}
+                {"pii": e.pii, "surrogate": e.surrogate, "entity_type": e.entity_type}
                 for e in self._map
             ]
         )
