@@ -19,11 +19,11 @@ class PiiPayload(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     map_path = os.environ.get("SURROGATE_MAP_PATH")
-    names_db_path = os.environ.get("NAMES_DB_PATH")
-    app.state.name_db = NameDatabase(names_db_path)
+    names_db_path = os.environ.get("SURROGATE_NAMES_DB_PATH")
+    app.state.names_db = NameDatabase(names_db_path)
     app.state.surrogate_map = SurrogateMap(map_path)
     yield
-    app.state.surrogate_map.save_to_json(app.state.surrogate_map_path)
+    app.state.surrogate_map.save_to_json()
 
 app = FastAPI(title="Surrogate Generator", lifespan=lifespan)
 
@@ -33,7 +33,7 @@ def generate_pii_surrogate(body: PiiPayload, request: Request):
         body.pii,
         body.entity_type,
         request.app.state.surrogate_map,
-        request.app.state.name_db,
+        request.app.state.names_db,
     )
     return {
         "pii": body.pii,

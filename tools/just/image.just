@@ -4,7 +4,7 @@ set shell := ["bash", "-cue"]
 ctr := "docker"
 registry := "ghcr.io/sdsc-ordes/deid-module"
 platforms := "linux/amd64"
-images := "presidio-anonymizer presidio-analyzer"
+images := "presidio-anonymizer presidio-analyzer surrogate"
 
 # Default recipe to list all recipes.
 [private]
