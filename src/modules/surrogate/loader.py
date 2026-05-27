@@ -41,7 +41,7 @@ class SurrogateMap:
             return
         self._to_dataframe().to_csv(path, index=False, encoding="utf-8")
 
-    def add(
+    def insert(
         self,
         word: str,
         surrogate: str,
