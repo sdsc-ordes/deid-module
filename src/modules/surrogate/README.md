@@ -21,13 +21,6 @@ docker run -p 8000:80 fastapi-app
 
 Launch FastAPI server with `uv run fastapi dev`. 
 
-### POST /pii
-
-```curl
-curl -X POST http://127.0.0.1:8000/pii \
-  -H "Content-Type: application/json" \
-  -d '{"pii": "Jean Dupont", "entity": "[[NAME]]"}'
-```
 
 ## Presidio Integration
 
@@ -63,7 +56,6 @@ sequenceDiagram
         SG->>SG: Generate
         SG->>VK: Insert
     end
-    VK-->>SG: return surrogate if exists
     SG-->>O: return surrogate
     O-->>Anon: return surrogate
     Anon-)Anon: assemble surrogates into text
