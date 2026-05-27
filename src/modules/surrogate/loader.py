@@ -4,6 +4,8 @@ import random
 from pathlib import Path
 from typing import Protocol
 from abc import abstractmethod
+from functools import lru_cache
+import sqlite3
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -27,8 +29,45 @@ class SurrogateMap(Protocol):
     def exists_in_map(self, pii: str) -> tuple[bool, str | None]:    # Method without a default implementation
         raise NotImplementedError
 
+class SqlSurrogateMap(SurrogateMap):
+    """SQLite DB surrogate map."""
 
-class JsonMap (SurrogateMap):
+    def __init__(self, map_path: str | None) -> None:
+        self._map: set[MapEntry] = set()
+        self.map_path = map_path
+        if self.map_path:
+            with sqlite3.connect(self.map_path) as conn: 
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS surrogate_map (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        pii TEXT NOT NULL,
+                        surrogate TEXT NOT NULL,
+                        entity_type TEXT NOT NULL
+                    )
+                    """
+                )
+    def insert(self, pii: str, surrogate: str, entity_type: str) -> None:
+        with sqlite3.connect(self.map_path) as conn: 
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO surrogate_map (pii, surrogate, entity_type) VALUES (?, ?, ?)",
+                (pii, surrogate, entity_type),
+            )
+
+    @lru_cache(10)
+    def exists_in_map(self, pii: str) -> tuple[bool, str | None]:
+        with sqlite3.connect(self.map_path) as conn: 
+            self.cursor = conn.cursor()
+            self.cursor.execute(
+                "SELECT surrogate FROM surrogate_map WHERE LOWER(pii) = LOWER(?)",
+                (pii,),
+            )
+            result = self.cursor.fetchone()
+            return (True, result[0]) if result else (False, None)
+    
+class JsonSurrogateMap (SurrogateMap):
     """In-memory surrogate map backed by a set; persisted as JSON."""
 
     def __init__(self, map_path: str | None) -> None:

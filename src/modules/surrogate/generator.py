@@ -42,7 +42,6 @@ def generate_surrogate(
             surrogate = generate_name_surrogate(pii, surrogate_map, names_db)
         case 'LOCATION':
             surrogate = generate_location_surrogate(pii, surrogate_map)
-            print(f"Generated surrogate for location: {pii} -> {surrogate}")
         case 'DATE':
             surrogate = generate_date_surrogate(pii, surrogate_map, parameters['year_shift'])
         case 'CONTACT':
@@ -99,8 +98,6 @@ def generate_name_surrogate(pii: str, surrogate_map: SurrogateMap, names_db: Nam
                 first_letter = name[0]
                 surrogate = names_db.pick_random(predicted_gender, first_letter)
                 surrogate_name += surrogate + ' '
-                print(f"Predicted gender for {name}: {predicted_gender}")
-                print(f"Generated surrogate for name: {name} -> {surrogate}")
     surrogate_map.insert(pii, surrogate_name.strip(), 'NAME')
     return surrogate_name.strip()
 
