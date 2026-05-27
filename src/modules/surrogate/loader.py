@@ -6,9 +6,9 @@ from fuzzywuzzy import fuzz
 from pydantic import BaseModel, Field
 
 class MapEntry(BaseModel):
-    word: str
+    pii: str
     surrogate: str
-    entity: str = Field(
+    entity_type: str = Field(
         description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'",
     )
 
@@ -24,11 +24,11 @@ class SurrogateMap:
         if path and os.path.exists(path):
             df = pd.read_csv(path)
             for row in df.itertuples(index=False):
-                self._map.append(MapEntry(word=row.word, surrogate=row.surrogate, entity=row.entity))
+                self._map.append(MapEntry(pii=row.pii, surrogate=row.surrogate, entity_type=row.entity_type))
 
     def _to_dataframe(self) -> pd.DataFrame:
         if not self._map:
-            return pd.DataFrame(columns=["word", "surrogate", "entity"])
+            return pd.DataFrame(columns=["pii", "surrogate", "entity_type"])
         return pd.DataFrame(
             [
                 {"pii": e.pii, "surrogate": e.surrogate, "entity_type": e.entity_type}
@@ -36,24 +36,24 @@ class SurrogateMap:
             ]
         )
 
-    def save(self, path: str | None) -> None:
+    def save_to_json(self, path: str | None) -> None:
         if not path:
             return
         self._to_dataframe().to_csv(path, index=False, encoding="utf-8")
 
     def insert(
         self,
-        word: str,
+        pii: str,
         surrogate: str,
-        entity: str
+        entity_type: str
     ) -> None:
         """Append one mapping. Replaces pd.concat + new_entry."""
         self._map.append(
-            MapEntry(word=word, surrogate=surrogate, entity=entity)
+            MapEntry(pii=pii, surrogate=surrogate, entity_type=entity_type)
         )
 
 
-    def check_exists_in_map(
+    def find_similar(
         self,
         token: str,
         threshold: int = 80,
@@ -66,7 +66,7 @@ class SurrogateMap:
 
         token_lower = token.lower()
         for entry in self._map:
-            if fuzz.token_sort_ratio(token_lower, entry.word.lower()) > threshold:
+            if fuzz.token_sort_ratio(token_lower, entry.pii.lower()) > threshold:
                 return True, entry.surrogate
         return False, None
 
@@ -98,14 +98,3 @@ class NameDatabase:
     def pick_random(self, gender: str, first_char: str) -> str:
         names = self._cache.get((gender, first_char.lower()))
         return random.choice(names) if names else "Doe"
-
-def load_name_database(names_db_path):
-    names_db = NameDatabase(names_db_path)
-    return names_db
-
-def load_surrogate_map(surrogate_map_path):
-    surrogate_map = SurrogateMap(surrogate_map_path)
-    return surrogate_map
-
-def save_surrogate_map(surrogate_map, surrogate_map_path):
-    surrogate_map.to_csv(surrogate_map_path, index=False, encoding="utf-8")

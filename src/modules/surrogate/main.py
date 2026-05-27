@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
 from generator import generate_surrogate
-from loader import load_surrogate_map, load_name_database
+from loader import NameDatabase, SurrogateMap
 
 from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field
@@ -20,11 +20,10 @@ class PiiPayload(BaseModel):
 async def lifespan(app: FastAPI):
     map_path = os.environ.get("SURROGATE_MAP_PATH")
     names_db_path = os.environ.get("NAMES_DB_PATH")
-    app.state.surrogate_map_path = map_path
-    app.state.name_db = load_name_database(names_db_path)
-    app.state.surrogate_map = load_surrogate_map(map_path)
+    app.state.name_db = NameDatabase(names_db_path)
+    app.state.surrogate_map = SurrogateMap(map_path)
     yield
-    app.state.surrogate_map.save(app.state.surrogate_map_path)
+    app.state.surrogate_map.save_to_json(app.state.surrogate_map_path)
 
 app = FastAPI(title="Surrogate Generator", lifespan=lifespan)
 
