@@ -12,8 +12,12 @@ images-modules := "surrogate"
 default:
     just --list image
 
+# Build all images (presidio and modules)
+build tag="latest" *args: (build-presidio tag args) (build-modules tag "linux/amd64" args)
+
 # Build all presidio images for all platforms
-build tag="latest" *args:
+[private]
+build-presidio tag="latest" *args:
   #!/usr/bin/env bash
 
   cd {{root_dir}}/external/repos/presidio
@@ -31,7 +35,8 @@ build tag="latest" *args:
     done
   done
 
-# Build surrogate image. Omit platform for a native local build; pass
+# Build modules images
+[private]
 build-modules tag="latest" platform="" *args:
   #!/usr/bin/env bash
 
