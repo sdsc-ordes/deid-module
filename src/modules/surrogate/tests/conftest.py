@@ -6,12 +6,12 @@ from loader import JsonSurrogateMap, NameDatabase, SqlSurrogateMap
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def names_db_path():
     return FIXTURES_DIR / "names_db"
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def names_db(names_db_path):
     return NameDatabase(str(names_db_path))
 

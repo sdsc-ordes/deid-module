@@ -29,7 +29,7 @@ class TestJsonSurrogateMap:
     def test_save_with_no_path_is_noop(self):
         m = JsonSurrogateMap(None)
         m.insert("foo", "bar", "LOCATION")
-        m.save_to_json()  # must not raise
+        m.save_to_json()
 
 
 class TestSqlSurrogateMap:
@@ -41,23 +41,19 @@ class TestSqlSurrogateMap:
         assert sql_map.exists_in_map("nobody") == (False, None)
 
     def test_insert_stores_lowercase(self, sql_map):
-        # insert() lowercases pii before storing; exists_in_map() also lowercases the query
         sql_map.insert("JOHN", "Jane", "NAME")
         assert sql_map.exists_in_map("john") == (True, "Jane")
 
 
 class TestNameDatabase:
-    def test_pick_random_female(self, names_db):
-        assert names_db.pick_random("female", "a") in {"Alice", "Anna"}
-
-    def test_pick_random_male(self, names_db):
-        assert names_db.pick_random("male", "a") in {"Aaron", "Adam"}
-
-    def test_mostly_male_maps_to_male(self, names_db):
-        assert names_db.pick_random("mostly_male", "a") in {"Aaron", "Adam"}
-
-    def test_mostly_female_maps_to_female(self, names_db):
-        assert names_db.pick_random("mostly_female", "a") in {"Alice", "Anna"}
+    @pytest.mark.parametrize("gender,expected", [
+        ("female", {"Alice", "Anna"}),
+        ("male", {"Aaron", "Adam"}),
+        ("mostly_male", {"Aaron", "Adam"}),
+        ("mostly_female", {"Alice", "Anna"}),
+    ])
+    def test_pick_random_by_gender(self, names_db, gender, expected):
+        assert names_db.pick_random(gender, "a") in expected
 
     def test_unknown_gender_returns_doe(self, names_db):
         assert names_db.pick_random("unknown", "a") == "Doe"
@@ -72,7 +68,6 @@ class TestNameDatabase:
         assert names_db.pick_random("female", "z") == "Doe"
 
     def test_uppercase_first_char_is_normalised(self, names_db):
-        # pick_random uses first_char.lower() internally
         assert names_db.pick_random("female", "A") in {"Alice", "Anna"}
 
     def test_empty_db_returns_doe(self, tmp_path):

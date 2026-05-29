@@ -1,10 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-from pathlib import Path
 
 from main import app
-
-FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture
@@ -37,17 +34,16 @@ def test_unknown_entity_type_returns_redacted(client):
     assert resp.json()["surrogate"] == "REDACTED"
 
 
-def test_fixed_string_surrogates(client):
-    cases = [
-        ("Swiss", "NATIONALITY", "Nationality-UNKNOWN"),
-        ("Married", "CIVILSTATUS", "CivilStatus-UNKNOWN"),
-        ("Engineer", "PROFESSION", "Profession-UNKNOWN"),
-        ("Sister", "PERSONALRELATIONSHIP", "Relationship-UNKNOWN"),
-        ("CHUV", "ORGANIZATION", "Organization-UNKNOWN"),
-    ]
-    for pii, entity_type, expected in cases:
-        resp = client.post("/pii", json={"pii": pii, "entity_type": entity_type})
-        assert resp.json()["surrogate"] == expected, f"Failed for {entity_type}"
+@pytest.mark.parametrize("pii,entity_type,expected", [
+    ("Swiss", "NATIONALITY", "Nationality-UNKNOWN"),
+    ("Married", "CIVILSTATUS", "CivilStatus-UNKNOWN"),
+    ("Engineer", "PROFESSION", "Profession-UNKNOWN"),
+    ("Sister", "PERSONALRELATIONSHIP", "Relationship-UNKNOWN"),
+    ("CHUV", "ORGANIZATION", "Organization-UNKNOWN"),
+])
+def test_fixed_string_surrogates(client, pii, entity_type, expected):
+    resp = client.post("/pii", json={"pii": pii, "entity_type": entity_type})
+    assert resp.json()["surrogate"] == expected
 
 
 def test_surrogate_is_idempotent(client):
@@ -58,7 +54,6 @@ def test_surrogate_is_idempotent(client):
 
 
 def test_name_surrogate_uses_names_db(client):
-    # "Alice" → gender_guesser detects female, first letter a → fixture has Alice, Anna
     resp = client.post("/pii", json={"pii": "Alice", "entity_type": "NAME"})
     assert resp.status_code == 200
     assert resp.json()["surrogate"] in {"Alice", "Anna", "Doe"}
