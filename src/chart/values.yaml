@@ -1,6 +1,6 @@
 registry: ghcr.io
 
-namespace: deid
+namespace: ml-clin-deid
 
 # Image pull secret
 # privateRegistry: acr-auth

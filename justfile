@@ -32,7 +32,7 @@ render:
 # Apply manifests in dir to the cluster.
 deploy dir="src/chart":
   cd {{root_dir}} && \
-    helm upgrade --install dev {{dir}} -n deid -f {{dir}}/values.yaml --create-namespace
+    helm upgrade --install dev {{dir}} -n ml-clin-deid -f {{dir}}/values.yaml
 
 # Enter development shell
 dev:

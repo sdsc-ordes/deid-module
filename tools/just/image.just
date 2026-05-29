@@ -5,6 +5,7 @@ ctr := "docker"
 registry := "ghcr.io/sdsc-ordes/deid-module"
 platforms := "linux/amd64"
 images := "presidio-anonymizer presidio-analyzer"
+images-modules := "surrogate"
 
 # Default recipe to list all recipes.
 [private]
@@ -28,6 +29,26 @@ build tag="latest" *args:
         "./${image}"
 
     done
+  done
+
+# Build surrogate image. Omit platform for a native local build; pass
+build-modules tag="latest" platform="" *args:
+  #!/usr/bin/env bash
+
+  cd {{root_dir}}/src/modules/
+  for image in {{images-modules}}; do
+    platform_args=()
+    tag_suffix=""
+    if [[ -n "{{platform}}" ]]; then
+      platform_args=(--platform "{{platform}}")
+      tag_suffix="-$(echo '{{platform}}' | sed 's/\//-/g')"
+    fi
+
+    docker buildx build \
+      {{args}} \
+      "${platform_args[@]}" \
+      --tag "{{registry}}/${image}:{{tag}}${tag_suffix}" \
+      "./${image}"
   done
 
 
