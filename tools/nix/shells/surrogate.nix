@@ -18,7 +18,10 @@
       uv = {
         enable = true;
         package = pkgs.uv;
-        sync.enable = true;
+        sync = {
+          enable = true;
+          allExtras = true;
+        };
       };
     };
   }
