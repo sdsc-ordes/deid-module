@@ -57,7 +57,7 @@ class SqlSurrogateMap(SurrogateMap):
                 (pii.lower(), surrogate, entity_type),
             )
 
-    @lru_cache(10)  # avoid repeated DB round-trips for the same pii within a request
+    @lru_cache(1000)  # avoid repeated DB round-trips for the same pii within a request
     def exists_in_map(self, pii: str) -> tuple[bool, str | None]:
         with sqlite3.connect(self.map_path) as conn: 
             self.cursor = conn.cursor()
