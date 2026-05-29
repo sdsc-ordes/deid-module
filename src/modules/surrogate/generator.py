@@ -9,8 +9,6 @@ from loader import NameDatabase, SurrogateMap
 
 _GENDER_DETECTOR = gender.Detector()
 
-# PURPOSE: This script aims to generate surrogate values for different entity_type types based on predefined rules and datasets.
-# <USAGE> python piiDEID_surrogate_generation.py <entity_type_file> <output_file>
 
 def generate_surrogate(
     pii: str,
@@ -19,17 +17,17 @@ def generate_surrogate(
     names_db: NameDatabase,
     parameters=None,
 ) -> str:
-    """
-    Generate surrogate values for entities in the input CSV file and save to output CSV file.
-    
+    """Dispatch PII to the appropriate surrogate generator based on entity type.
+
     Args:
-        input (set): The input DataFrame containing entities.
-        surrogate_map (set): The DataFrame containing surrogate mappings.
-        names_db (set): The DataFrame containing name lists.
-        parameters (dict, optional): Parameters for surrogate generation.
+        pii: The raw PII string to replace.
+        entity_type: Entity label (e.g. 'NAME', 'DATE', 'LOCATION').
+        surrogate_map: Persistent map used to retrieve and store pii→surrogate pairs.
+        names_db: Name database used for person-name generation.
+        parameters: Optional overrides. Supported keys:
+            - 'year_shift' (int): Years to add when shifting dates/ages (default: 3).
     Returns:
-        output (set): The output DataFrame with surrogate values.
-        surrogate_map (set): The updated surrogate map with new mappings.
+        Surrogate string, or 'REDACTED' for unrecognised entity types.
     """
     # set defult parameters if not provided
     if parameters is None:  
@@ -80,6 +78,12 @@ def generate_surrogate(
 
 
 def generate_name_surrogate(pii: str, surrogate_map: SurrogateMap, names_db: NameDatabase) -> str:
+    """Replace a person name token-by-token, preserving recognised titles (Dr., Mr., …).
+
+    Each non-title token is replaced by a gender-matched name starting with the same letter,
+    looked up via gender_guesser and the names database. The full name mapping is cached in
+    surrogate_map so repeated occurrences of the same name yield the same surrogate.
+    """
     exists, surrogate = surrogate_map.exists_in_map(pii)
     if exists:
         return surrogate
@@ -125,7 +129,13 @@ def generate_location_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
     return surrogate
 
 
-def generate_date_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: int):
+def generate_date_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: int) -> str:
+    """Shift a date forward by year_shift years, preserving the DD/MM/YYYY output format.
+
+    Separators (. - space) are normalised to / before parsing. Patterns are tried
+    most-specific first; the first successful parse wins. Returns the original string
+    unchanged if no pattern matches.
+    """
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.exists_in_map(pii)
     if exists:
@@ -190,6 +200,12 @@ def generate_date_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: i
 
 
 def generate_contact_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
+    """Replace an email address or phone number with a random surrogate of the same length/format.
+
+    Emails: randomise local part and domain name, keep TLD.
+    Phone numbers: replace each digit randomly.
+    Anything else is returned unchanged.
+    """
     # check if the pii already has a surrogate in the map
     exists, surrogate = surrogate_map.exists_in_map(pii)
     if exists:
