@@ -41,10 +41,10 @@ class SqlSurrogateMap(SurrogateMap):
                 cursor.execute(
                     """
                     CREATE TABLE IF NOT EXISTS surrogate_map (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        pii TEXT NOT NULL,
-                        surrogate TEXT NOT NULL,
-                        entity_type TEXT NOT NULL
+                        pii         TEXT NOT NULL,
+                        surrogate   TEXT NOT NULL,
+                        entity_type TEXT NOT NULL,
+                        PRIMARY KEY (pii, entity_map)
                     )
                     """
                 )
