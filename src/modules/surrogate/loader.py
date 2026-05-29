@@ -20,12 +20,7 @@ class MapEntry(BaseModel):
     )
 
 class SurrogateMap(Protocol):
-    """Protocol for pii -> surrogate map.
-
-    Lookups are case-insensitive on the pii key. Implementations must ensure
-    that insert() followed by exists_in_map() for the same pii returns the
-    stored surrogate.
-    """
+    """Protocol for a case-insensitive pii → surrogate persistence map."""
 
     @abstractmethod
     def insert(self, pii: str, surrogate: str, entity_type: str) -> None:
@@ -132,8 +127,8 @@ class NameDatabase:
             male/     a_group.txt  …
             unisex/   a_group.txt  …
 
-    Each file contains one name per line. Missing directories or files are
-    silently skipped; pick_random() falls back to "Doe" when no names are found.
+    Each file contains one name per line. Missing directories/files are silently skipped;
+    pick_random() falls back to "Doe" when no names are found.
     """
 
     def __init__(self, names_db_path: str | None) -> None:
