@@ -1,8 +1,11 @@
+#Python config files: surrogate map and surrogate names' files
+src/modules/surrogate/config/
+src/chart/conf/surrogate/
+
 .direnv/
 
 # third party manifests
-external/helm/*
-external/ytt/*
+external/repos
 external/.vendir*
 
 # Byte-compiled / optimized / DLL files
@@ -143,7 +146,6 @@ celerybeat.pid
 
 # Environments
 .env
-.envrc
 .venv
 env/
 venv/

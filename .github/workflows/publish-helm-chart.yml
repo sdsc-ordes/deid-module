@@ -23,6 +23,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - uses: ./.github/actions/setup-nix
+
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
