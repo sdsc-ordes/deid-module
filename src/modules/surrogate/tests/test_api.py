@@ -56,4 +56,4 @@ def test_surrogate_is_idempotent(client):
 def test_name_surrogate_uses_names_db(client):
     resp = client.post("/pii", json={"pii": "Alice", "entity_type": "NAME"})
     assert resp.status_code == 200
-    assert resp.json()["surrogate"] in {"Alice", "Anna", "Doe"}
+    assert resp.json()["surrogate"] in {"Alice", "Anna"}
