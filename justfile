@@ -37,8 +37,8 @@ deploy dir="src":
       "kubectl kustomize {{dir}} | kubectl apply -f -"
 
 # Enter development shell
-dev:
-  just nix::develop
+dev shell="default" *args:
+  just nix::develop {{shell}} {{args}}
 
 # Fetch external dependencies
 fetch:
