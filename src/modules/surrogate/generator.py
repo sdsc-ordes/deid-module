@@ -147,6 +147,7 @@ def generate_date_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: i
     ]
 
 
+    date_obj = None
     for pattern in date_patterns:
         match = re.search(pattern, pii)
         if match:
@@ -165,10 +166,12 @@ def generate_date_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: i
                     date_obj = dateutil.parser.parse(date_str)
                 elif re.match(r'\d{4}', date_str):
                     date_obj = dateutil.parser.parse(date_str, format='%Y')
-                else:
-                    date_obj = None
             except:
                 date_obj = None
+
+            # If we found a match, no need to check other patterns
+            if date_obj is not None:
+                break
     
     # If date parsing was successful, shift the year
     if date_obj is not None :
