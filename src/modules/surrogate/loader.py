@@ -44,7 +44,7 @@ class SqlSurrogateMap(SurrogateMap):
                         pii         TEXT NOT NULL,
                         surrogate   TEXT NOT NULL,
                         entity_type TEXT NOT NULL,
-                        PRIMARY KEY (pii, entity_map)
+                        PRIMARY KEY (pii, entity_type)
                     )
                     """
                 )
