@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $fullname }}
+  namespace: {{ .Values.namespace }}
   labels:
     app: {{ $fullname }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"

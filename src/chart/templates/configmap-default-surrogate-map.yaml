@@ -4,6 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: "{{ $fullname }}-surrogate-map-config"
+  namespace: {{ .Values.namespace }}
 data:
   surrogate_map.csv: |-
 {{ .Files.Get "conf/surrogate/surrogate_map.csv" | indent 4 }}

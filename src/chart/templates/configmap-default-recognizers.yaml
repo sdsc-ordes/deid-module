@@ -4,6 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: "{{ $fullname }}-recognizers-config"
+  namespace: {{ .Values.namespace }}
 data:
   default-recognizers.yaml: |-
 {{ .Files.Get "conf/default-recognizers.yaml" | indent 4 }}

@@ -1,5 +1,6 @@
 #Python config
 src/chart/conf/surrogate/
+src/modules/surrogate/config/
 
 .direnv/
 

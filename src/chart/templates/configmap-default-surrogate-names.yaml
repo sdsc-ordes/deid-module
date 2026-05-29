@@ -11,6 +11,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: "{{ $fullname }}-surrogate-names-{{ $gender }}"
+  namespace: {{ $.Values.namespace }}
 data:
 {{- range $path, $_ := $.Files.Glob (printf "conf/surrogate/surrogate_db/surrogate_names/%s/*_group.txt" $gender) }}
   {{ base $path }}: |-

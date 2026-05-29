@@ -4,6 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: "{{ $fullname }}-surrogate-config"
+  namespace: {{ .Values.namespace }}
 data:
   SURROGATE_MAP_PATH: "/app/data/surrogate_map.csv"
   NAMES_DB_PATH: "/app/conf/surrogate_db/surrogate_names"

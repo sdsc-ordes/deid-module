@@ -1,5 +1,7 @@
 registry: ghcr.io
 
+namespace: deid
+
 # Image pull secret
 # privateRegistry: acr-auth
 tag: gha40
