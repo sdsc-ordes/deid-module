@@ -42,18 +42,17 @@ build-modules tag="latest" platform="" *args:
 
   cd {{root_dir}}/src/modules/
   for image in {{images-modules}}; do
-    platform_args=()
-    tag_suffix=""
-    if [[ -n "{{platform}}" ]]; then
-      platform_args=(--platform "{{platform}}")
-      tag_suffix="-$(echo '{{platform}}' | sed 's/\//-/g')"
-    fi
+    for platform in {{platforms}}; do
 
-    docker buildx build \
-      {{args}} \
-      "${platform_args[@]}" \
-      --tag "{{registry}}/${image}:{{tag}}${tag_suffix}" \
-      "./${image}"
+      # Create platform-specific tag
+      PLATFORM_TAG=$(echo "${platform}" | sed 's/\//-/g')
+      docker buildx build \
+        {{args}} \
+        --platform "${platform}" \
+        --tag "{{registry}}/${image}:{{tag}}-${PLATFORM_TAG}" \
+        "./${image}"
+
+    done
   done
 
 
