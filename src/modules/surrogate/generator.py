@@ -85,8 +85,7 @@ def generate_name_surrogate(pii: str, surrogate_map: SurrogateMap, names_db: Nam
         return surrogate
 
     surrogate_name = ''
-    names = pii.split()
-    for name in names:
+    for name in pii.split():
         if re.match(r'^(Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Mme\.|M\.|Mme|M|Dr|Mr|Ms|Mrs|Prof)$', name):
             surrogate_name += name + ' '
         else:
