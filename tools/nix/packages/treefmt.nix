@@ -10,7 +10,10 @@ let
     settings.global.excludes = [ "external/*" ];
 
     # Markdown, JSON, YAML, etc.
-    programs.prettier.enable = true;
+    programs.prettier = {
+      enable = true;
+      package = pkgs.prettier;
+    };
 
     # Python
     programs.ruff.enable = true;

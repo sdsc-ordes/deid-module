@@ -9,6 +9,8 @@
       pkgs.ruff
     ];
 
+    env.UV_PROJECT = "src/modules/surrogate";
+
     languages.python = {
       enable = true;
       directory = "src/modules/surrogate";
@@ -16,9 +18,7 @@
       uv = {
         enable = true;
         package = pkgs.uv;
-        # pyproject.toml lives in src/modules/surrogate/, not the repo root,
-        # so auto-sync is disabled — run `uv sync --extra dev` manually there.
-        sync.enable = false;
+        sync.enable = true;
       };
     };
   }
