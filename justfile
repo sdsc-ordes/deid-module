@@ -44,11 +44,6 @@ dev shell="default" *args:
 fetch:
   just external::fetch
 
-# Test deploy on minikube instance
-test:
-  bash ./tests/minikube_deploy
-  minikube stop
-
 # Manage OCI images.
 [group('modules')]
 mod image 'tools/just/image.just'
@@ -58,3 +53,6 @@ mod nix 'tools/just/nix.just'
 # Manage external dependencies.
 [group('modules')]
 mod external 'tools/just/external.just'
+# Test various components
+[group('modules')]
+mod test 'tools/just/test.just'
