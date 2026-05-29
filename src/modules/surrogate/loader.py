@@ -53,7 +53,7 @@ class SqlSurrogateMap(SurrogateMap):
             cursor = conn.cursor()
             cursor.execute(
                 "INSERT INTO surrogate_map (pii, surrogate, entity_type) VALUES (?, ?, ?)",
-                (pii, surrogate, entity_type),
+                (pii.lower(), surrogate, entity_type),
             )
 
     @lru_cache(10)
@@ -61,8 +61,8 @@ class SqlSurrogateMap(SurrogateMap):
         with sqlite3.connect(self.map_path) as conn: 
             self.cursor = conn.cursor()
             self.cursor.execute(
-                "SELECT surrogate FROM surrogate_map WHERE LOWER(pii) = LOWER(?)",
-                (pii,),
+                "SELECT surrogate FROM surrogate_map WHERE pii = ?",
+                (pii.lower(),),
             )
             result = self.cursor.fetchone()
             return (True, result[0]) if result else (False, None)
