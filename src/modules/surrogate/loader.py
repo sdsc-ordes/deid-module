@@ -1,10 +1,13 @@
-import pandas as pd
+import json
 import os
-import re
-from pathlib import Path
 import random
-from fuzzywuzzy import fuzz
-from dataclasses import dataclass
+from pathlib import Path
+from typing import Protocol
+from abc import abstractmethod
+from functools import lru_cache
+import sqlite3
+
+from pydantic import BaseModel, ConfigDict, Field
 
 def letter_from_group_filename(filename: str) -> str:
     """Map *_group.txt filename to the first-letter bucket (e.g. enc.c3a9 -> é)."""
@@ -13,84 +16,130 @@ def letter_from_group_filename(filename: str) -> str:
         return bytes.fromhex(stem[4:]).decode("utf-8")
     return stem
 
-@dataclass(frozen=True, slots=True)
-class MapEntry:
-    word: str
+
+class MapEntry(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    pii: str
     surrogate: str
-    entity: str
+    entity_type: str = Field(
+        description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'",
+    )
 
+class SurrogateMap(Protocol):
 
-class SurrogateMap:
-    """In-memory surrogate map. CSV is read at load and written at save only."""
+    @abstractmethod
+    def insert(self, pii: str, surrogate: str, entity_type: str):    # Method without a default implementation
+        raise NotImplementedError
+    
+    @abstractmethod
+    def exists_in_map(self, pii: str) -> tuple[bool, str | None]:    # Method without a default implementation
+        raise NotImplementedError
 
-    def __init__(self, map_path) -> None:
-        self._map: list[MapEntry] = []
-        self._load_from_csv(map_path)
+class SqlSurrogateMap(SurrogateMap):
+    """SQLite DB surrogate map."""
 
-    def _load_from_csv(self, path: str | None):
-        if path and os.path.exists(path):
-            df = pd.read_csv(path)
-            for row in df.itertuples(index=False):
-                self._map.append(MapEntry(word=row.word, surrogate=row.surrogate, entity=row.entity))
+    def __init__(self, map_path: str | None) -> None:
+        self._map: set[MapEntry] = set()
+        self.map_path = map_path
+        if self.map_path:
+            with sqlite3.connect(self.map_path) as conn: 
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS surrogate_map (
+                        pii         TEXT NOT NULL,
+                        surrogate   TEXT NOT NULL,
+                        entity_type TEXT NOT NULL,
+                        PRIMARY KEY (pii, entity_map)
+                    )
+                    """
+                )
+    def insert(self, pii: str, surrogate: str, entity_type: str) -> None:
+        with sqlite3.connect(self.map_path) as conn: 
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO surrogate_map (pii, surrogate, entity_type) VALUES (?, ?, ?)",
+                (pii.lower(), surrogate, entity_type),
+            )
 
-    def _to_dataframe(self) -> pd.DataFrame:
-        if not self._map:
-            return pd.DataFrame(columns=["word", "surrogate", "entity"])
-        return pd.DataFrame(
-            [
-                {"word": e.word, "surrogate": e.surrogate, "entity": e.entity}
-                for e in self._map
-            ]
-        )
+    @lru_cache(10)
+    def exists_in_map(self, pii: str) -> tuple[bool, str | None]:
+        with sqlite3.connect(self.map_path) as conn: 
+            self.cursor = conn.cursor()
+            self.cursor.execute(
+                "SELECT surrogate FROM surrogate_map WHERE pii = ?",
+                (pii.lower(),),
+            )
+            result = self.cursor.fetchone()
+            return (True, result[0]) if result else (False, None)
+    
+class JsonSurrogateMap (SurrogateMap):
+    """In-memory surrogate map backed by a set; persisted as JSON."""
 
-    def save(self, path: str | None) -> None:
-        if not path:
-            return
-        self._to_dataframe().to_csv(path, index=False, encoding="utf-8")
+    def __init__(self, map_path: str | None) -> None:
+        self._map: set[MapEntry] = set()
+        self.map_path = map_path
+        self._load_from_json()
 
-    def add(
+    def _load_from_json(self) -> None:
+        if self.map_path and os.path.exists(self.map_path):
+            with open(self.map_path, encoding="utf-8") as f:
+                entries = json.load(f)
+            self._map = {MapEntry(**entry) for entry in entries}
+        else:
+            self._map = set()
+
+    def _to_json(self) -> list[dict]:
+        return [entry.model_dump() for entry in self._map]
+
+    def save_to_json(self) -> None:
+        if self.map_path:
+            with open(self.map_path, "w", encoding="utf-8") as f:
+                json.dump(self._to_json(), f, indent=2)
+
+    def insert(self, pii: str, surrogate: str, entity_type: str) -> None:
+        self._map.add(MapEntry(pii=pii, surrogate=surrogate, entity_type=entity_type))
+
+    def exists_in_map(
         self,
-        word: str,
-        surrogate: str,
-        entity: str
-    ) -> None:
-        """Append one mapping. Replaces pd.concat + new_entry."""
-        self._map.append(
-            MapEntry(word=word, surrogate=surrogate, entity=entity)
-        )
-
-
-    def check_exists_in_map(
-        self,
-        token: str,
-        threshold: int = 80,
+        pii: str,
     ) -> tuple[bool, str | None]:
-        """
-        Fuzzy lookup: first entry where token_sort_ratio > threshold.
-        """
         if not self._map:
             return False, None
 
-        token_lower = token.lower()
+        pii_lower = pii.lower()
         for entry in self._map:
-            if fuzz.token_sort_ratio(token_lower, entry.word.lower()) > threshold:
+            if pii_lower == entry.pii.lower():
                 return True, entry.surrogate
         return False, None
 
 
+_GENDER_LABELS = {
+    "male": "male",
+    "mostly_male": "male",
+    "female": "female",
+    "mostly_female": "female",
+}
+
+
 class NameDatabase:
-    def __init__(self, names_db_path):
-        self.names_db_path = Path(names_db_path)
-        self._cache = self._build_cache()
+    def __init__(self, names_db_path: str | None) -> None:
+        self.names_db_path = Path(names_db_path) if names_db_path else Path()
+        self._cache: dict[tuple[str, str], set[str]] = self._build_cache()
 
     @staticmethod
-    def _read_group_file(path: Path) -> list[str]:
+    def _read_group_file(path: Path) -> set[str]:
         if not path.is_file():
-            return []
-        return [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            return set()
+        return {
+            line.strip()
+            for line in path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        }
 
-    def _build_cache(self) -> dict[tuple[str, str], list[str]]:
-        cache: dict[tuple[str, str], list[str]] = {}
+    def _build_cache(self) -> dict[tuple[str, str], set[str]]:
+        cache: dict[tuple[str, str], set[str]] = {}
         for gender in ("female", "male", "unisex"):
             gender_dir = self.names_db_path / gender
             if not gender_dir.is_dir():
@@ -101,18 +150,18 @@ class NameDatabase:
                 if names:
                     cache[(gender, letter)] = names
         return cache
-    
+
+    @staticmethod
+    def _match_gender(predicted: str) -> str:
+        return _GENDER_LABELS.get(predicted, "unisex")
+
     def pick_random(self, gender: str, first_char: str) -> str:
-        names = self._cache.get((gender, first_char.lower()))
-        return random.choice(names) if names else "Doe"
-
-def load_name_database(names_db_path):
-    names_db = NameDatabase(names_db_path)
-    return names_db
-
-def load_surrogate_map(surrogate_map_path):
-    surrogate_map = SurrogateMap(surrogate_map_path)
-    return surrogate_map
-
-def save_surrogate_map(surrogate_map, surrogate_map_path):
-    surrogate_map.to_csv(surrogate_map_path, index=False, encoding="utf-8")
+        if gender is None or first_char is None:
+            return "Doe"
+        if gender=="unknown":
+            return "Doe"
+        label = self._match_gender(gender)
+        names = self._cache.get((label, first_char.lower()))
+        print("output from cache:")
+        print(names)
+        return random.choice(tuple(names)) if names else "Doe"

@@ -1,12 +1,8 @@
 # Surrogates
 
-## Run
+## Usage
 
-```bash
-curl -X POST http://127.0.0.1:8000/pii \
-  -H "Content-Type: application/json" \
-  -d '{"pii": "Bob", "entity_type": "NAME"}'
-```
+After starting the server, go to `http://127.0.0.1:80/docs` to read the API documentation.
 
 ### Local
 
@@ -23,15 +19,8 @@ docker run -p 8000:80 fastapi-app
 
 ## fast API
 
-Launch FastAPI server with `uv run fastapi dev`.
+Launch FastAPI server with `uv run fastapi dev`. 
 
-### POST /pii
-
-```curl
-curl -X POST http://127.0.0.1:8000/pii \
-  -H "Content-Type: application/json" \
-  -d '{"pii": "Jean Dupont", "entity": "[[NAME]]"}'
-```
 
 ## Presidio Integration
 
@@ -39,8 +28,9 @@ Here is the expected flow of this module for its integration with Presidio.
 
 Key references:
 
-- \*[Presidio API documentation for Analyzer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Analyzer)
-- \*\*[Presidio API documentation for Anonymizer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Anonymizer)
+- *[Presidio API documentation for Analyzer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Analyzer)
+- **[Presidio API documentation for Anonymizer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Anonymizer)
+
 
 ```mermaid
 sequenceDiagram
@@ -66,7 +56,6 @@ sequenceDiagram
         SG->>SG: Generate
         SG->>VK: Insert
     end
-    VK-->>SG: return surrogate if exists
     SG-->>O: return surrogate
     O-->>Anon: return surrogate
     Anon-)Anon: assemble surrogates into text
