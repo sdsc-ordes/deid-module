@@ -8,5 +8,4 @@ metadata:
 data:
   surrogate_map.json: |-
 {{ .Files.Get "conf/surrogate/surrogate_map.json" | indent 4 }}
-  surrogate_map.db: |-
-{{ .Files.Get "conf/surrogate/surrogate_map.db" | indent 4 }}
+  surrogate_map.db.b64: {{ .Files.Get "conf/surrogate/surrogate_map.db" | b64enc | quote }}

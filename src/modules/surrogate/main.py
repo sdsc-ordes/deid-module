@@ -23,9 +23,9 @@ async def lifespan(app: FastAPI):
     names_db_path = os.environ.get("SURROGATE_NAMES_DB_PATH")
     app.state.names_db = NameDatabase(names_db_path)
     if map_mode == "json":
-        app.state.surrogate_map = JsonSurrogateMap(map_path)
+        app.state.surrogate_map = JsonSurrogateMap(map_path+"surrogate_map.json")
     elif map_mode == "sqlite":
-        app.state.surrogate_map = SqlSurrogateMap(map_path)
+        app.state.surrogate_map = SqlSurrogateMap(map_path+"surrogate_map.db")
     else:
         raise ValueError(f"Unsupported SURROGATE_MAP_MODE: {map_mode}")
     yield

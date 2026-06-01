@@ -26,8 +26,11 @@ spec:
             - sh
             - -c
             - |
-              if [ ! -f /data/surrogate_map.csv ]; then
-                cp /seed/surrogate_map.csv /data/surrogate_map.csv
+              if [ ! -f /data/surrogate_map.json ]; then
+                cp /seed/surrogate_map.json /data/surrogate_map.json
+              fi
+              if [ ! -f /data/surrogate_map.db ]; then
+                base64 -d /seed/surrogate_map.db.b64 > /data/surrogate_map.db
               fi
           volumeMounts:
             - name: {{ $fullname }}-surrogate-map-seed-vol
