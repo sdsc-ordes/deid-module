@@ -6,5 +6,6 @@ metadata:
   name: "{{ $fullname }}-surrogate-config"
   namespace: {{ .Values.namespace }}
 data:
-  SURROGATE_MAP_PATH: "/app/data/surrogate_map.csv"
+  SURROGATE_MAP_PATH: "/app/data/surrogate_map.db"
+  SURROGATE_MAP_MODE: "sqlite"
   NAMES_DB_PATH: "/app/conf/surrogate_db/surrogate_names"

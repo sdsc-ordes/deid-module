@@ -36,6 +36,6 @@ spec:
           - name: PORT
             value: {{ .Values.anonymizer.service.internalPort | quote }}
           - name: SURROGATE_ENDPOINT
-            value: {{ include "surrogate.address" . | quote }}
+            value: "http://{{ include "surrogate.fullname" . }}:{{ .Values.surrogate.service.externalPort }}"
       {{ if .Values.privateRegistry }}imagePullSecrets:
         - name: {{.Values.privateRegistry}}{{ end }}

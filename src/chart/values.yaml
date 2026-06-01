@@ -4,7 +4,7 @@ namespace: ml-clin-deid
 
 # Image pull secret
 # privateRegistry: acr-auth
-tag: gha42
+tag: gha42-linux-amd64
 
 # supported types are nginx (wip: traefik and istio)
 ingress:

@@ -3,6 +3,7 @@ src/chart/conf/surrogate/
 src/modules/surrogate/config/
 
 .direnv/
+.devenv/
 
 # third party manifests
 external/repos

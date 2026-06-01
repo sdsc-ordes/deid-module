@@ -6,5 +6,7 @@ metadata:
   name: "{{ $fullname }}-surrogate-map-config"
   namespace: {{ .Values.namespace }}
 data:
-  surrogate_map.csv: |-
-{{ .Files.Get "conf/surrogate/surrogate_map.csv" | indent 4 }}
+  surrogate_map.json: |-
+{{ .Files.Get "conf/surrogate/surrogate_map.json" | indent 4 }}
+  surrogate_map.db: |-
+{{ .Files.Get "conf/surrogate/surrogate_map.db" | indent 4 }}
