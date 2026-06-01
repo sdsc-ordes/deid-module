@@ -5,19 +5,19 @@
     extra-substituters = [
       # Nix community's cache server
       "https://nix-community.cachix.org"
+      "https://devenv.cachix.org"
     ];
     extra-trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
     ];
   };
 
   inputs = {
-    # Nixpkgs
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    # You can access packages and modules from different nixpkgs revs
-    # at the same time. Here's an working example:
-    nixpkgsStable.url = "github:nixos/nixpkgs/nixos-25.05";
+    # You can access packages and modules from different nixpkgs revs at the same time.
+    nixpkgs.url = "github:cachix/devenv-nixpkgs/rolling";
+    #nixpkgsStable.url = "github:nixos/nixpkgs/nixos-26.05";
     # Also see the 'stable-packages' overlay at 'overlays/default.nix'.
 
     flake-utils.url = "github:numtide/flake-utils";
@@ -27,12 +27,18 @@
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    devenv = {
+      url = "github:cachix/devenv";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
       nixpkgs,
       flake-utils,
+      devenv,
       ...
     }@inputs:
     let
@@ -82,6 +88,11 @@
               # a development shell.
               # Without `nix develop` it works.
               shellHook = "unset TMPDIR";
+            };
+
+            surrogate = devenv.lib.mkShell {
+              inherit pkgs inputs;
+              modules = import ./shells/surrogate.nix { inherit pkgs; };
             };
           };
         };
