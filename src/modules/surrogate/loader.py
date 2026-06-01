@@ -27,13 +27,14 @@ class MapEntry(BaseModel):
     )
 
 class SurrogateMap(Protocol):
+    """Protocol for a case-insensitive pii → surrogate persistence map."""
 
     @abstractmethod
-    def insert(self, pii: str, surrogate: str, entity_type: str):    # Method without a default implementation
+    def insert(self, pii: str, surrogate: str, entity_type: str) -> None:
         raise NotImplementedError
-    
+
     @abstractmethod
-    def exists_in_map(self, pii: str) -> tuple[bool, str | None]:    # Method without a default implementation
+    def exists_in_map(self, pii: str) -> tuple[bool, str | None]:
         raise NotImplementedError
 
 class SqlSurrogateMap(SurrogateMap):
@@ -51,7 +52,7 @@ class SqlSurrogateMap(SurrogateMap):
                         pii         TEXT NOT NULL,
                         surrogate   TEXT NOT NULL,
                         entity_type TEXT NOT NULL,
-                        PRIMARY KEY (pii, entity_map)
+                        PRIMARY KEY (pii, entity_type)
                     )
                     """
                 )
@@ -63,7 +64,6 @@ class SqlSurrogateMap(SurrogateMap):
                 (pii.lower(), surrogate, entity_type),
             )
 
-    @lru_cache(10)
     def exists_in_map(self, pii: str) -> tuple[bool, str | None]:
         with sqlite3.connect(self.map_path) as conn: 
             self.cursor = conn.cursor()
@@ -124,6 +124,19 @@ _GENDER_LABELS = {
 
 
 class NameDatabase:
+    """Name list indexed by (gender, first_letter), loaded from a directory tree.
+
+    Expected layout::
+
+        <names_db_path>/
+            female/   a_group.txt  b_group.txt  …
+            male/     a_group.txt  …
+            unisex/   a_group.txt  …
+
+    Each file contains one name per line. Missing directories/files are silently skipped;
+    pick_random() falls back to "Doe" when no names are found.
+    """
+
     def __init__(self, names_db_path: str | None) -> None:
         self.names_db_path = Path(names_db_path) if names_db_path else Path()
         self._cache: dict[tuple[str, str], set[str]] = self._build_cache()
@@ -156,6 +169,7 @@ class NameDatabase:
         return _GENDER_LABELS.get(predicted, "unisex")
 
     def pick_random(self, gender: str, first_char: str) -> str:
+        """Return a random name matching gender and starting letter, or 'Doe' as fallback."""
         if gender is None or first_char is None:
             return "Doe"
         if gender=="unknown":

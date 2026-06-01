@@ -35,17 +35,12 @@ deploy dir="src/chart":
     helm upgrade --install dev {{dir}} -n ml-clin-deid -f {{dir}}/values.yaml
 
 # Enter development shell
-dev:
-  just nix::develop
+dev shell="default" *args:
+  just nix::develop {{shell}} {{args}}
 
 # Fetch external dependencies
 fetch:
   just external::fetch
-
-# Test deploy on minikube instance
-test:
-  bash ./tests/minikube_deploy
-  minikube stop
 
 # Manage OCI images.
 [group('modules')]
@@ -56,3 +51,6 @@ mod nix 'tools/just/nix.just'
 # Manage external dependencies.
 [group('modules')]
 mod external 'tools/just/external.just'
+# Test various components
+[group('modules')]
+mod test 'tools/just/test.just'
