@@ -13,7 +13,7 @@ default:
     just --list image
 
 # Build all images (presidio and modules)
-build tag="latest" *args: (build-presidio tag args) (build-modules tag "linux/amd64" args)
+build tag="latest" *args: (build-presidio tag args) (build-modules tag args)
 
 # Build all presidio images for all platforms
 [private]
