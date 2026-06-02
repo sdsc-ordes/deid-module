@@ -10,7 +10,7 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  replicas: {{ .Values.surrogate.replicas }}
+  replicas: 1
   selector:
     matchLabels:
       app: {{ $fullname }}
