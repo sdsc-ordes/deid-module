@@ -37,7 +37,7 @@ build-presidio tag="latest" *args:
 
 # Build modules images
 [private]
-build-modules tag="latest" platform="" *args:
+build-modules tag="latest" *args:
   #!/usr/bin/env bash
 
   cd {{root_dir}}/src/modules/
