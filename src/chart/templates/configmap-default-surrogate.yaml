@@ -8,4 +8,4 @@ metadata:
 data:
   SURROGATE_MAP_PATH: "/app/data/"
   SURROGATE_MAP_MODE: "sqlite"
-  SURROGATE_NAMES_DB_PATH: "/app/conf/surrogate_db/surrogate_names"
+  SURROGATE_NAMES_DB_PATH: "/app/conf/surrogate_db/surrogate_names.csv"
