@@ -15,16 +15,18 @@ load_dotenv()
 
 
 class PiiPayload(BaseModel):
-    pii: str = Field(description="Personal Identifiable Information value to be surrogated, e.g. 'John Doe', '01/01/1990', 'New York'")
-    entity_type: str = Field(
-        description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'",
-    )
+    """PII Payload that requires a surrogate."""
+
+    pii: str = Field(description="Personal Identifiable Information value to replace, e.g. 'John Doe', '01/01/1990', 'New York'.")
+    entity_type: str = Field(description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'.")
 
 
 class MapItem(BaseModel):
-    pii: str
-    entity_type: str
-    surrogate: str
+    """A single PII to surrogate mapping."""
+
+    pii: str = Field(description="Personal Identifiable Information value.")
+    entity_type: str = Field(description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'.")
+    surrogate: str = Field(description="Replacement value for `pii`.")
 
 def _require_env(name: str) -> str:
     value = os.environ.get(name)
@@ -53,6 +55,7 @@ app = FastAPI(title="Surrogate Generator", lifespan=lifespan)
 
 @app.post("/pii")
 def generate_pii_surrogate(body: PiiPayload, request: Request) -> MapItem:
+    """Surrogate a single PII value. Idempotent per (pii, entity_type)."""
     surrogate = generate_surrogate(
         body.pii,
         body.entity_type,
@@ -64,6 +67,7 @@ def generate_pii_surrogate(body: PiiPayload, request: Request) -> MapItem:
 
 @app.get("/map")
 def get_map(request: Request) -> Iterable[MapItem]:
+    """Stream all stored mappings as JSON Lines."""
     # data comes from validated map storage
     for entry, surrogate in request.app.state.surrogate_map:
         # model_construct skips validation -> faster instantiation
