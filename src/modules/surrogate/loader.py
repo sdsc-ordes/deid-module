@@ -45,30 +45,25 @@ class SqlSurrogateMap:
 
     def __init__(self, map_path: Path) -> None:
         self._map_path = map_path
-
-        _ = self._query(
-            """
-            CREATE TABLE IF NOT EXISTS surrogate_map (
-                pii         TEXT NOT NULL,
-                surrogate   TEXT NOT NULL,
-                entity_type TEXT NOT NULL,
-                PRIMARY KEY (pii, entity_type)
+        with sqlite3.connect(self._map_path) as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS surrogate_map (
+                    pii         TEXT NOT NULL,
+                    surrogate   TEXT NOT NULL,
+                    entity_type TEXT NOT NULL,
+                    PRIMARY KEY (pii, entity_type)
+                )
+                """
             )
-            """,
-            (),
-        )
 
     def __iter__(self) -> Iterator[tuple[MapEntry, str]]:
-        conn = sqlite3.connect(self._map_path)
-        try:
-            cursor = conn.execute(
+        with sqlite3.connect(self._map_path) as conn:
+            rows = conn.execute(
                 "SELECT pii, surrogate, entity_type FROM surrogate_map"
-            )
-            for pii, surrogate, entity_type in cursor:
-                yield MapEntry(pii=pii, entity_type=entity_type), surrogate
-        finally:
-            conn.close()
-
+            ).fetchall()
+        for pii, surrogate, entity_type in rows:
+            yield MapEntry(pii=pii, entity_type=entity_type), surrogate
 
     def save(self, map_path: Path):
         _ = shutil.copy(self._map_path, map_path)
@@ -78,24 +73,20 @@ class SqlSurrogateMap:
 
     def insert(self, map_entry: MapEntry, surrogate: str) -> None:
         clean_entry = map_entry.to_sanitized()
-        _ = self._query(
-            "INSERT INTO surrogate_map (pii, entity_type, surrogate) VALUES (?, ?, ?)",
-            (clean_entry.pii, clean_entry.entity_type, surrogate),
-        )
+        with sqlite3.connect(self._map_path) as conn:
+            conn.execute(
+                "INSERT INTO surrogate_map (pii, entity_type, surrogate) VALUES (?, ?, ?)",
+                (clean_entry.pii, clean_entry.entity_type, surrogate),
+            )
 
     def get(self, map_entry: MapEntry) -> str | None:
         clean_entry = map_entry.to_sanitized()
-        result = self._query(
-            "SELECT surrogate FROM surrogate_map WHERE pii = ? AND entity_type = ?",
-            (clean_entry.pii, clean_entry.entity_type),
-        ).fetchone()
-
-        return result[0] if result else None
-
-    def _query(self, query: str, values: tuple[str, ...]) -> sqlite3.Cursor:
         with sqlite3.connect(self._map_path) as conn:
-            cursor = conn.cursor()
-            return cursor.execute(query, values)
+            row = conn.execute(
+                "SELECT surrogate FROM surrogate_map WHERE pii = ? AND entity_type = ?",
+                (clean_entry.pii, clean_entry.entity_type),
+            ).fetchone()
+        return row[0] if row else None
 
 
 
