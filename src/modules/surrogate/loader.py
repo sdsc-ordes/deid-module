@@ -75,7 +75,10 @@ class SqlSurrogateMap:
         clean_entry = map_entry.to_sanitized()
         with sqlite3.connect(self._map_path) as conn:
             conn.execute(
-                "INSERT INTO surrogate_map (pii, entity_type, surrogate) VALUES (?, ?, ?)",
+                """
+                INSERT INTO surrogate_map (pii, entity_type, surrogate) VALUES (?, ?, ?)
+                ON CONFLICT(pii, entity_type) DO UPDATE SET surrogate = excluded.surrogate
+                """,
                 (clean_entry.pii, clean_entry.entity_type, surrogate),
             )
 
