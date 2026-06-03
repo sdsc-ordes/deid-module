@@ -1,13 +1,30 @@
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
 from main import app
+
+JSONL_MEDIA_TYPE = "application/jsonl"
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch, names_db_path):
     monkeypatch.setenv("SURROGATE_MAP_PATH", str(tmp_path / "map.json"))
     monkeypatch.setenv("SURROGATE_MAP_MODE", "json")
+    monkeypatch.setenv("SURROGATE_NAMES_DB_PATH", str(names_db_path))
+    with TestClient(app) as c:
+        yield c
+
+
+@pytest.fixture(params=[
+    pytest.param(("json", "map.json"), id="json"),
+    pytest.param(("sqlite", "map.db"), id="sqlite"),
+])
+def map_client(request, tmp_path, monkeypatch, names_db_path):
+    mode, filename = request.param
+    monkeypatch.setenv("SURROGATE_MAP_PATH", str(tmp_path / filename))
+    monkeypatch.setenv("SURROGATE_MAP_MODE", mode)
     monkeypatch.setenv("SURROGATE_NAMES_DB_PATH", str(names_db_path))
     with TestClient(app) as c:
         yield c
@@ -57,3 +74,52 @@ def test_name_surrogate_uses_names_db(client):
     resp = client.post("/pii", json={"pii": "Alice", "entity_type": "NAME"})
     assert resp.status_code == 200
     assert resp.json()["surrogate"] in {"Alice", "Anna"}
+
+
+def _parse_jsonl(resp):
+    return [json.loads(line) for line in resp.text.splitlines() if line]
+
+
+def test_map_empty(map_client):
+    resp = map_client.get("/map")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith(JSONL_MEDIA_TYPE)
+    assert resp.text == ""
+
+
+def test_map_streams_inserted_entries(map_client):
+    map_client.post("/pii", json={"pii": "01/01/2020", "entity_type": "DATE"})
+    map_client.post("/pii", json={"pii": "Engineer", "entity_type": "PROFESSION"})
+
+    resp = map_client.get("/map")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith(JSONL_MEDIA_TYPE)
+    by_pii = {item["pii"]: item for item in _parse_jsonl(resp)}
+    assert by_pii["01/01/2020"] == {
+        "pii": "01/01/2020",
+        "entity_type": "DATE",
+        "surrogate": "01/01/2023",
+    }
+    assert by_pii["engineer"] == {
+        "pii": "engineer",
+        "entity_type": "PROFESSION",
+        "surrogate": "Profession-UNKNOWN",
+    }
+
+
+def test_map_streams_incrementally(map_client):
+    """Each entry must be flushed as soon as the iterator yields it — no buffering of the full map."""
+    for i in range(5):
+        map_client.post("/pii", json={"pii": f"job-{i}", "entity_type": "PROFESSION"})
+
+    with map_client.stream("GET", "/map") as resp:
+        assert resp.status_code == 200
+        lines = []
+        for line in resp.iter_lines():
+            if line:
+                lines.append(json.loads(line))
+                if len(lines) == 1:
+                    break
+
+    assert lines[0]["entity_type"] == "PROFESSION"
+    assert lines[0]["pii"].startswith("job-")
