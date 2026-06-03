@@ -1,111 +1,160 @@
+from __future__ import annotations
 import json
 import os
 import random
+import shutil
 from pathlib import Path
 from typing import Protocol
-from abc import abstractmethod
-from functools import lru_cache
+from collections.abc import Iterator
 import sqlite3
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
-class MapEntry(BaseModel):
-    model_config = ConfigDict(frozen=True)
+class MapEntry(BaseModel, frozen=True):
 
     pii: str
-    surrogate: str
     entity_type: str = Field(
         description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'",
     )
 
+    def to_sanitized(self) -> MapEntry:
+        return MapEntry(
+            pii = self.pii.lower(),
+            entity_type = self.entity_type,
+        )
+
 class SurrogateMap(Protocol):
     """Protocol for a case-insensitive pii → surrogate persistence map."""
 
-    @abstractmethod
-    def insert(self, pii: str, surrogate: str, entity_type: str) -> None:
-        raise NotImplementedError
+    def save(self, map_path: Path) -> None: ...
 
-    @abstractmethod
-    def contains(self, pii: str) -> tuple[bool, str | None]:
-        raise NotImplementedError
+    def load(self, map_path: Path) -> None: ...
 
-class SqlSurrogateMap(SurrogateMap):
+    def insert(self, entry: MapEntry, surrogate: str) -> None: ...
+
+    def get(self, entry: MapEntry) -> str | None: ...
+
+    def __iter__(self) -> Iterator[tuple[MapEntry, str]]: ...
+
+
+
+class SqlSurrogateMap:
     """SQLite DB surrogate map."""
 
-    def __init__(self, map_path: str | None) -> None:
-        self._map: set[MapEntry] = set()
-        self.map_path = map_path
-        if self.map_path:
-            with sqlite3.connect(self.map_path) as conn: 
-                cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS surrogate_map (
-                        pii         TEXT NOT NULL,
-                        surrogate   TEXT NOT NULL,
-                        entity_type TEXT NOT NULL,
-                        PRIMARY KEY (pii, entity_type)
-                    )
-                    """
-                )
-    def insert(self, pii: str, surrogate: str, entity_type: str) -> None:
-        with sqlite3.connect(self.map_path) as conn: 
+    _map_path: Path
+
+    def __init__(self, map_path: Path) -> None:
+        self._map_path = map_path
+
+        _ = self._query(
+            """
+            CREATE TABLE IF NOT EXISTS surrogate_map (
+                pii         TEXT NOT NULL,
+                surrogate   TEXT NOT NULL,
+                entity_type TEXT NOT NULL,
+                PRIMARY KEY (pii, entity_type)
+            )
+            """,
+            (),
+        )
+
+    def __iter__(self) -> Iterator[tuple[MapEntry, str]]:
+        conn = sqlite3.connect(self._map_path)
+        try:
+            cursor = conn.execute(
+                "SELECT pii, surrogate, entity_type FROM surrogate_map"
+            )
+            for pii, surrogate, entity_type in cursor:
+                yield  MapEntry(
+                    pii=pii, entity_type=entity_type
+                ), surrogate
+        finally:
+            conn.close()
+
+
+    def save(self, map_path: Path):
+        _ = shutil.copy(self._map_path, map_path)
+
+    def load(self, map_path: Path):
+        self._map_path = map_path
+
+    def insert(self, map_entry: MapEntry, surrogate: str) -> None:
+        clean_entry = map_entry.to_sanitized()
+        _ = self._query(
+            "INSERT INTO surrogate_map (pii, entity_type, surrogate) VALUES (?, ?, ?)",
+            (clean_entry.pii, clean_entry.entity_type, surrogate),
+        )
+
+    def get(self, map_entry: MapEntry) -> str | None:
+        clean_entry = map_entry.to_sanitized()
+        result = self._query(
+            "SELECT surrogate FROM surrogate_map WHERE pii = ?",
+            (clean_entry.pii, clean_entry.entity_type),
+        ).fetchone()
+
+        return result[0] if result else None
+
+    def _query(self, query: str, values: tuple[str, ...]) -> sqlite3.Cursor:
+        with sqlite3.connect(self._map_path) as conn: 
             cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO surrogate_map (pii, surrogate, entity_type) VALUES (?, ?, ?)",
-                (pii.lower(), surrogate, entity_type),
-            )
-
-    def contains(self, pii: str) -> tuple[bool, str | None]:
-        with sqlite3.connect(self.map_path) as conn: 
-            self.cursor = conn.cursor()
-            self.cursor.execute(
-                "SELECT surrogate FROM surrogate_map WHERE pii = ?",
-                (pii.lower(),),
-            )
-            result = self.cursor.fetchone()
-            return (True, result[0]) if result else (False, None)
+            return cursor.execute(query,values)
+        
     
-class JsonSurrogateMap (SurrogateMap):
-    """In-memory surrogate map backed by a set; persisted as JSON."""
+class JsonSurrogateMap:
+    """In-memory surrogate map backed by a set; persisted as JSON.
 
-    def __init__(self, map_path: str | None) -> None:
-        self._map: set[MapEntry] = set()
-        self.map_path = map_path
-        self._load_from_json()
+    The json serialization is:
+    [
+      [json(MapEntry), surrogate],
+    ]
 
-    def _load_from_json(self) -> None:
-        if self.map_path and os.path.exists(self.map_path):
-            with open(self.map_path, encoding="utf-8") as f:
-                entries = json.load(f)
-            self._map = {MapEntry(**entry) for entry in entries}
-        else:
-            self._map = set()
+    """
 
-    def _to_json(self) -> list[dict]:
-        return [entry.model_dump() for entry in self._map]
+    _map_path: Path
 
-    def save(self) -> None:
-        if self.map_path:
-            with open(self.map_path, "w", encoding="utf-8") as f:
-                json.dump(self._to_json(), f, indent=2)
+    def __init__(self, map_path: Path) -> None:
+        self._map_path = map_path
+        # self._map is a private representation optimized for access speed.
+        # It is not meant to be serialized as-is.
+        self._map: dict[MapEntry, str]
+        self.load(map_path)
 
-    def insert(self, pii: str, surrogate: str, entity_type: str) -> None:
-        self._map.add(MapEntry(pii=pii, surrogate=surrogate, entity_type=entity_type))
+    def __iter__(self) -> Iterator[tuple[MapEntry, str]]:
+        return iter(self._map.items())
 
-    def contains(
+    def load(self, map_path: Path) -> None:
+        if os.path.exists(map_path):
+            with open(map_path, encoding="utf-8") as f:
+                self._map = {
+                    MapEntry(**entry): surrogate for entry, surrogate in json.load(f)
+                }
+
+        raise ValueError("map_path does not exist.")
+
+    def _serialize(self) -> list[tuple[dict[str, str], str]]:
+        return [
+            (entry.model_dump(), surrogate)
+            for entry, surrogate in self._map.items()
+        ]
+
+    def save(self, map_path: Path) -> None:
+        with open(map_path, "w", encoding="utf-8") as f:
+            json.dump(self._serialize(), f, indent=2)
+
+    def insert(self, map_entry: MapEntry, surrogate: str) -> None:
+        safe_entry = MapEntry(
+            pii=map_entry.pii.lower(),
+            entity_type=map_entry.entity_type,
+        )
+        self._map[safe_entry] = surrogate
+
+    def get(
         self,
-        pii: str,
-    ) -> tuple[bool, str | None]:
-        if not self._map:
-            return False, None
-
-        pii_lower = pii.lower()
-        for entry in self._map:
-            if pii_lower == entry.pii.lower():
-                return True, entry.surrogate
-        return False, None
+        map_entry: MapEntry,
+    ) -> str | None:
+        clean_entry = map_entry.to_sanitized()
+        return self._map.get(clean_entry)
 
 
 _GENDER_LABELS = {
