@@ -89,19 +89,20 @@ class SqlSurrogateMap:
     def get(self, map_entry: MapEntry) -> str | None:
         clean_entry = map_entry.to_sanitized()
         result = self._query(
-            "SELECT surrogate FROM surrogate_map WHERE pii = ?",
+            "SELECT surrogate FROM surrogate_map WHERE pii = ? AND entity_type = ?",
             (clean_entry.pii, clean_entry.entity_type),
         ).fetchone()
 
         return result[0] if result else None
 
     def _query(self, query: str, values: tuple[str, ...]) -> sqlite3.Cursor:
-        with sqlite3.connect(self._map_path) as conn: 
+        with sqlite3.connect(self._map_path) as conn:
             cursor = conn.cursor()
-            return cursor.execute(query,values)
-        
-    
-class JsonSurrogateMap:
+            return cursor.execute(query, values)
+
+
+
+class JsonSurrogateMap(SurrogateMap):
     """In-memory surrogate map backed by a set; persisted as JSON.
 
     The json serialization is:
