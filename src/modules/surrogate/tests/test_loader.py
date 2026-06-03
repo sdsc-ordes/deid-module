@@ -29,6 +29,11 @@ class TestJsonSurrogateMap:
         m2 = JsonSurrogateMap(path)
         assert m2.get(entry("1990-01-01", "DATE")) == "1993-01-01"
 
+    def test_reinsert_overwrites(self, json_map):
+        json_map.insert(entry("John", "NAME"), "Jane")
+        json_map.insert(entry("John", "NAME"), "Janet")
+        assert json_map.get(entry("John", "NAME")) == "Janet"
+
 
 class TestSqlSurrogateMap:
     def test_insert_and_lookup(self, sql_map):
@@ -41,6 +46,11 @@ class TestSqlSurrogateMap:
     def test_insert_stores_lowercase(self, sql_map):
         sql_map.insert(entry("JOHN", "NAME"), "Jane")
         assert sql_map.get(entry("john", "NAME")) == "Jane"
+
+    def test_reinsert_overwrites(self, sql_map):
+        sql_map.insert(entry("John", "NAME"), "Jane")
+        sql_map.insert(entry("John", "NAME"), "Janet")
+        assert sql_map.get(entry("John", "NAME")) == "Janet"
 
 
 class TestNameDatabase:
