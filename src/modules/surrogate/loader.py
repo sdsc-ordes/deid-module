@@ -175,7 +175,7 @@ class NameDatabase:
 
     def __init__(self, names_db_path: Path) -> None:
         self.names_db_path = names_db_path
-        self._cache: dict[tuple[str, str], set[str]] = self._build_cache()
+        self._cache: dict[tuple[str, str], tuple[str, ...]] = self._build_cache()
 
     @staticmethod
     def _read_group_file(path: Path) -> tuple[str, ...]:
