@@ -179,8 +179,8 @@ class NameDatabase:
     pick_random() falls back to "Doe" when no names are found.
     """
 
-    def __init__(self, names_db_path: str | None) -> None:
-        self.names_db_path = Path(names_db_path) if names_db_path else Path()
+    def __init__(self, names_db_path: Path) -> None:
+        self.names_db_path = names_db_path
         self._cache: dict[tuple[str, str], set[str]] = self._build_cache()
 
     @staticmethod
