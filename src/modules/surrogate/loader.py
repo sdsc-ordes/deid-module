@@ -4,6 +4,7 @@ import random
 import shutil
 import sqlite3
 from collections.abc import Iterator
+from contextlib import closing
 from pathlib import Path
 from typing import Protocol
 
@@ -58,12 +59,11 @@ class SqlSurrogateMap:
             )
 
     def __iter__(self) -> Iterator[tuple[MapEntry, str]]:
-        with sqlite3.connect(self._map_path) as conn:
-            rows = conn.execute(
+        with closing(sqlite3.connect(self._map_path)) as conn:
+            for pii, surrogate, entity_type in conn.execute(
                 "SELECT pii, surrogate, entity_type FROM surrogate_map"
-            ).fetchall()
-        for pii, surrogate, entity_type in rows:
-            yield MapEntry(pii=pii, entity_type=entity_type), surrogate
+            ):
+                yield MapEntry(pii=pii, entity_type=entity_type), surrogate
 
     def save(self, map_path: Path):
         _ = shutil.copy(self._map_path, map_path)
