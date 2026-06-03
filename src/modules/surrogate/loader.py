@@ -1,12 +1,11 @@
 from __future__ import annotations
 import json
-import os
 import random
 import shutil
-from pathlib import Path
-from typing import Protocol
-from collections.abc import Iterator
 import sqlite3
+from collections.abc import Iterator
+from pathlib import Path
+from typing import Callable, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -37,9 +36,22 @@ class SurrogateMap(Protocol):
 
     def __iter__(self) -> Iterator[tuple[MapEntry, str]]: ...
 
+    def get_or_insert(
+        self,
+        pii: str,
+        entity_type: str,
+        build: Callable[[], str],
+    ) -> str:
+        entry = MapEntry(pii=pii, entity_type=entity_type)
+        cached = self.get(entry)
+        if cached is not None:
+            return cached
+        surrogate = build()
+        self.insert(entry, surrogate)
+        return surrogate
 
 
-class SqlSurrogateMap:
+class SqlSurrogateMap(SurrogateMap):
     """SQLite DB surrogate map."""
 
     _map_path: Path
@@ -66,9 +78,7 @@ class SqlSurrogateMap:
                 "SELECT pii, surrogate, entity_type FROM surrogate_map"
             )
             for pii, surrogate, entity_type in cursor:
-                yield  MapEntry(
-                    pii=pii, entity_type=entity_type
-                ), surrogate
+                yield MapEntry(pii=pii, entity_type=entity_type), surrogate
         finally:
             conn.close()
 
@@ -125,13 +135,13 @@ class JsonSurrogateMap(SurrogateMap):
         return iter(self._map.items())
 
     def load(self, map_path: Path) -> None:
-        if os.path.exists(map_path):
+        if map_path.exists():
             with open(map_path, encoding="utf-8") as f:
                 self._map = {
                     MapEntry(**entry): surrogate for entry, surrogate in json.load(f)
                 }
-
-        raise ValueError("map_path does not exist.")
+        else:
+            self._map = {}
 
     def _serialize(self) -> list[tuple[dict[str, str], str]]:
         return [
@@ -144,11 +154,7 @@ class JsonSurrogateMap(SurrogateMap):
             json.dump(self._serialize(), f, indent=2)
 
     def insert(self, map_entry: MapEntry, surrogate: str) -> None:
-        safe_entry = MapEntry(
-            pii=map_entry.pii.lower(),
-            entity_type=map_entry.entity_type,
-        )
-        self._map[safe_entry] = surrogate
+        self._map[map_entry.to_sanitized()] = surrogate
 
     def get(
         self,
