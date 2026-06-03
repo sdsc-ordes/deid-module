@@ -27,7 +27,7 @@ class SurrogateMap(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    def exists_in_map(self, pii: str) -> tuple[bool, str | None]:
+    def contains(self, pii: str) -> tuple[bool, str | None]:
         raise NotImplementedError
 
 class SqlSurrogateMap(SurrogateMap):
@@ -57,7 +57,7 @@ class SqlSurrogateMap(SurrogateMap):
                 (pii.lower(), surrogate, entity_type),
             )
 
-    def exists_in_map(self, pii: str) -> tuple[bool, str | None]:
+    def contains(self, pii: str) -> tuple[bool, str | None]:
         with sqlite3.connect(self.map_path) as conn: 
             self.cursor = conn.cursor()
             self.cursor.execute(
@@ -86,7 +86,7 @@ class JsonSurrogateMap (SurrogateMap):
     def _to_json(self) -> list[dict]:
         return [entry.model_dump() for entry in self._map]
 
-    def save_to_json(self) -> None:
+    def save(self) -> None:
         if self.map_path:
             with open(self.map_path, "w", encoding="utf-8") as f:
                 json.dump(self._to_json(), f, indent=2)
@@ -94,7 +94,7 @@ class JsonSurrogateMap (SurrogateMap):
     def insert(self, pii: str, surrogate: str, entity_type: str) -> None:
         self._map.add(MapEntry(pii=pii, surrogate=surrogate, entity_type=entity_type))
 
-    def exists_in_map(
+    def contains(
         self,
         pii: str,
     ) -> tuple[bool, str | None]:

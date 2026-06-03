@@ -77,7 +77,7 @@ def generate_surrogate(
 
 def generate_name_surrogate(pii: str, surrogate_map: SurrogateMap, names_db: NameDatabase) -> str:
     """Replace a person name token-by-token, preserving recognised titles (Dr., Mr., …)."""
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -86,7 +86,7 @@ def generate_name_surrogate(pii: str, surrogate_map: SurrogateMap, names_db: Nam
         if re.match(r'^(Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Mme\.|M\.|Mme|M|Dr|Mr|Ms|Mrs|Prof)$', name):
             surrogate_name += name + ' '
         else:
-            exists, surrogate = surrogate_map.exists_in_map(name)
+            exists, surrogate = surrogate_map.contains(name)
             if exists:
                 surrogate_name += surrogate + ' '
             else:
@@ -106,7 +106,7 @@ def replace_digits(pii: str) -> str:
 
 
 def generate_location_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -121,7 +121,7 @@ def generate_location_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
 
 def generate_date_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: int) -> str:
     """Shift a date forward by year_shift years, output as DD/MM/YYYY."""
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -180,7 +180,7 @@ def generate_date_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: i
 
 def generate_contact_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
     """Replace an email or phone number with a random surrogate of the same length/format."""
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -200,7 +200,7 @@ def generate_contact_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
     return surrogate
 
 def generate_number_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -210,7 +210,7 @@ def generate_number_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
     return surrogate 
 
 def generate_url_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -221,7 +221,7 @@ def generate_url_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
     return surrogate
 
 def generate_age_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: int) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -237,7 +237,7 @@ def generate_age_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: in
     return surrogate
 
 def generate_civil_status_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -247,7 +247,7 @@ def generate_civil_status_surrogate(pii: str, surrogate_map: SurrogateMap) -> st
     return surrogate
 
 def generate_nationality_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -257,7 +257,7 @@ def generate_nationality_surrogate(pii: str, surrogate_map: SurrogateMap) -> str
     return surrogate
 
 def generate_profession_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -267,7 +267,7 @@ def generate_profession_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
     return surrogate 
 
 def generate_hospital_service_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -277,7 +277,7 @@ def generate_hospital_service_surrogate(pii: str, surrogate_map: SurrogateMap) -
     return surrogate 
 
 def generate_hospital_building_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -287,7 +287,7 @@ def generate_hospital_building_surrogate(pii: str, surrogate_map: SurrogateMap) 
     return surrogate
 
 def generate_hospital_room_bed_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -297,7 +297,7 @@ def generate_hospital_room_bed_surrogate(pii: str, surrogate_map: SurrogateMap) 
     return surrogate 
 
 def generate_personal_relationship_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
@@ -307,7 +307,7 @@ def generate_personal_relationship_surrogate(pii: str, surrogate_map: SurrogateM
     return surrogate 
 
 def generate_organization_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.exists_in_map(pii)
+    exists, surrogate = surrogate_map.contains(pii)
     if exists:
         return surrogate
 
