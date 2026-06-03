@@ -5,7 +5,7 @@ import shutil
 import sqlite3
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Callable, Protocol
+from typing import Protocol
 
 from pydantic import BaseModel, Field
 
@@ -36,22 +36,9 @@ class SurrogateMap(Protocol):
 
     def __iter__(self) -> Iterator[tuple[MapEntry, str]]: ...
 
-    def get_or_insert(
-        self,
-        pii: str,
-        entity_type: str,
-        build: Callable[[], str],
-    ) -> str:
-        entry = MapEntry(pii=pii, entity_type=entity_type)
-        cached = self.get(entry)
-        if cached is not None:
-            return cached
-        surrogate = build()
-        self.insert(entry, surrogate)
-        return surrogate
 
 
-class SqlSurrogateMap(SurrogateMap):
+class SqlSurrogateMap:
     """SQLite DB surrogate map."""
 
     _map_path: Path
@@ -112,7 +99,7 @@ class SqlSurrogateMap(SurrogateMap):
 
 
 
-class JsonSurrogateMap(SurrogateMap):
+class JsonSurrogateMap:
     """In-memory surrogate map backed by a set; persisted as JSON.
 
     The json serialization is:
@@ -191,17 +178,17 @@ class NameDatabase:
         self._cache: dict[tuple[str, str], set[str]] = self._build_cache()
 
     @staticmethod
-    def _read_group_file(path: Path) -> set[str]:
+    def _read_group_file(path: Path) -> tuple[str, ...]:
         if not path.is_file():
-            return set()
-        return {
+            return ()
+        return tuple({
             line.strip()
             for line in path.read_text(encoding="utf-8").splitlines()
             if line.strip()
-        }
+        })
 
-    def _build_cache(self) -> dict[tuple[str, str], set[str]]:
-        cache: dict[tuple[str, str], set[str]] = {}
+    def _build_cache(self) -> dict[tuple[str, str], tuple[str, ...]]:
+        cache: dict[tuple[str, str], tuple[str, ...]] = {}
         for gender in ("female", "male", "unisex"):
             gender_dir = self.names_db_path / gender
             if not gender_dir.is_dir():
@@ -219,12 +206,7 @@ class NameDatabase:
 
     def pick_random(self, gender: str, first_char: str) -> str:
         """Return a random name matching gender and starting letter, or 'Doe' as fallback."""
-        if gender is None or first_char is None:
+        if gender is None or first_char is None or gender == "unknown":
             return "Doe"
-        if gender=="unknown":
-            return "Doe"
-        label = self._match_gender(gender)
-        names = self._cache.get((label, first_char.lower()))
-        print("output from cache:")
-        print(names)
-        return random.choice(tuple(names)) if names else "Doe"
+        names = self._cache.get((self._match_gender(gender), first_char.lower()))
+        return random.choice(names) if names else "Doe"
