@@ -6,16 +6,16 @@ from loader import JsonSurrogateMap, NameDatabase, SqlSurrogateMap
 class TestJsonSurrogateMap:
     def test_empty_map_returns_not_found(self):
         m = JsonSurrogateMap(None)
-        assert m.contains("anything") == (False, None)
+        assert m.get("anything") == (False, None)
 
     def test_insert_and_lookup(self, json_map):
         json_map.insert("John", "Jane", "NAME")
-        assert json_map.contains("John") == (True, "Jane")
+        assert json_map.get("John") == (True, "Jane")
 
     def test_lookup_is_case_insensitive(self, json_map):
         json_map.insert("John", "Jane", "NAME")
-        assert json_map.contains("JOHN") == (True, "Jane")
-        assert json_map.contains("john") == (True, "Jane")
+        assert json_map.get("JOHN") == (True, "Jane")
+        assert json_map.get("john") == (True, "Jane")
 
     def test_persist_round_trip(self, tmp_path):
         path = tmp_path / "map.json"
@@ -24,7 +24,7 @@ class TestJsonSurrogateMap:
         m.save_to_json()
 
         m2 = JsonSurrogateMap(str(path))
-        assert m2.contains("1990-01-01") == (True, "1993-01-01")
+        assert m2.get("1990-01-01") == (True, "1993-01-01")
 
     def test_save_with_no_path_is_noop(self):
         m = JsonSurrogateMap(None)
@@ -35,14 +35,14 @@ class TestJsonSurrogateMap:
 class TestSqlSurrogateMap:
     def test_insert_and_lookup(self, sql_map):
         sql_map.insert("John", "Jane", "NAME")
-        assert sql_map.contains("John") == (True, "Jane")
+        assert sql_map.get("John") == (True, "Jane")
 
     def test_missing_pii_returns_not_found(self, sql_map):
-        assert sql_map.contains("nobody") == (False, None)
+        assert sql_map.get("nobody") == (False, None)
 
     def test_insert_stores_lowercase(self, sql_map):
         sql_map.insert("JOHN", "Jane", "NAME")
-        assert sql_map.contains("john") == (True, "Jane")
+        assert sql_map.get("john") == (True, "Jane")
 
 
 class TestNameDatabase:
