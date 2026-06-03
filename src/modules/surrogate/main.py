@@ -19,11 +19,18 @@ class PiiPayload(BaseModel):
         description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'",
     )
 
+def _require_env(name: str) -> str:
+    value = os.environ.get(name)
+    if not value:
+        raise RuntimeError(f"Required environment variable {name!r} is not set")
+    return value
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    map_path = Path(os.environ.get("SURROGATE_MAP_PATH"))
-    map_mode = os.environ.get("SURROGATE_MAP_MODE")
-    names_db_path = Path(os.environ.get("SURROGATE_NAMES_DB_PATH"))
+    map_path = Path(_require_env("SURROGATE_MAP_PATH"))
+    map_mode = _require_env("SURROGATE_MAP_MODE")
+    names_db_path = Path(_require_env("SURROGATE_NAMES_DB_PATH"))
     app.state.names_db = NameDatabase(names_db_path)
     if map_mode == "json":
         app.state.surrogate_map = JsonSurrogateMap(map_path)
