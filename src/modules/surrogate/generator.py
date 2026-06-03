@@ -5,7 +5,7 @@ import random
 import dateutil
 import gender_guesser.detector as gender
 
-from loader import NameDatabase, SurrogateMap
+from loader import MapEntry, NameDatabase, SurrogateMap
 
 _GENDER_DETECTOR = gender.Detector()
 
@@ -28,12 +28,10 @@ def generate_surrogate(
     Returns:
         Surrogate string, or 'REDACTED' for unrecognised entity types.
     """
-    if parameters is None:  
-        parameters = {
-            'year_shift':3,
-        }
+    if parameters is None:
+        parameters = {'year_shift': 3}
 
-    match entity_type:  
+    match entity_type:
         case 'NAME' | 'PERSON':
             surrogate = generate_name_surrogate(pii, surrogate_map, names_db)
         case 'LOCATION':
@@ -77,8 +75,8 @@ def generate_surrogate(
 
 def generate_name_surrogate(pii: str, surrogate_map: SurrogateMap, names_db: NameDatabase) -> str:
     """Replace a person name token-by-token, preserving recognised titles (Dr., Mr., …)."""
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='NAME'))
+    if surrogate is not None:
         return surrogate
 
     surrogate_name = ''
@@ -86,43 +84,43 @@ def generate_name_surrogate(pii: str, surrogate_map: SurrogateMap, names_db: Nam
         if re.match(r'^(Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Mme\.|M\.|Mme|M|Dr|Mr|Ms|Mrs|Prof)$', name):
             surrogate_name += name + ' '
         else:
-            exists, surrogate = surrogate_map.get(name)
-            if exists:
-                surrogate_name += surrogate + ' '
+            token_surrogate = surrogate_map.get(MapEntry(pii=name, entity_type='NAME'))
+            if token_surrogate is not None:
+                surrogate_name += token_surrogate + ' '
             else:
                 predicted_gender = _GENDER_DETECTOR.get_gender(name)
                 first_letter = name[0]
-                surrogate = names_db.pick_random(predicted_gender, first_letter)
-                surrogate_name += surrogate + ' '
-    surrogate_map.insert(pii, surrogate_name.strip(), 'NAME')
+                token_surrogate = names_db.pick_random(predicted_gender, first_letter)
+                surrogate_name += token_surrogate + ' '
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='NAME'), surrogate_name.strip())
     return surrogate_name.strip()
 
 
 def replace_digits(pii: str) -> str:
     def random_digit(_):
         return str(random.randint(0, 9))
-    
+
     return re.sub(r'\d', random_digit, pii)
 
 
 def generate_location_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='LOCATION'))
+    if surrogate is not None:
         return surrogate
 
     if re.match(r'^[\d\s,-]+$', pii):
         surrogate = replace_digits(pii)
     else:
-        surrogate = 'Ville_'+pii[0].upper()
-    
-    surrogate_map.insert(pii, surrogate, 'LOCATION')
+        surrogate = 'Ville_' + pii[0].upper()
+
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='LOCATION'), surrogate)
     return surrogate
 
 
 def generate_date_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: int) -> str:
     """Shift a date forward by year_shift years, output as DD/MM/YYYY."""
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='DATE'))
+    if surrogate is not None:
         return surrogate
 
     pii = pii.replace(".", "/").replace("-", "/").replace(" ", "/")
@@ -137,7 +135,6 @@ def generate_date_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: i
         r'(\b\d{1,2}[/-]\d{1,2}\b)',             # Matches DD/MM or MM-DD (without year)
         r'(\b\d{4}\b)'                           # Matches standalone year YYYY
     ]
-
 
     date_obj = None
     for pattern in date_patterns:
@@ -157,7 +154,7 @@ def generate_date_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: i
                     date_obj = dateutil.parser.parse(date_str)
                 elif re.match(r'\d{4}', date_str):
                     date_obj = dateutil.parser.parse(date_str, format='%Y')
-            except:
+            except Exception:
                 date_obj = None
 
             if date_obj is not None:
@@ -174,14 +171,14 @@ def generate_date_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: i
     else:
         surrogate = pii
 
-    surrogate_map.insert(pii, surrogate, 'DATE')
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='DATE'), surrogate)
     return surrogate
 
 
 def generate_contact_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
     """Replace an email or phone number with a random surrogate of the same length/format."""
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='CONTACT'))
+    if surrogate is not None:
         return surrogate
 
     if re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', pii):
@@ -195,123 +192,122 @@ def generate_contact_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
         surrogate = replace_digits(pii)
     else:
         surrogate = pii
-    
-    surrogate_map.insert(pii, surrogate, 'CONTACT')
+
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='CONTACT'), surrogate)
     return surrogate
 
+
 def generate_number_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='NUMBER'))
+    if surrogate is not None:
         return surrogate
 
     surrogate = replace_digits(pii)
-    
-    surrogate_map.insert(pii, surrogate, 'NUMBER')
-    return surrogate 
-
-def generate_url_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
-        return surrogate
-
-    # Simple URL surrogate generation
-    surrogate = 'http://www.' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=8)) + '.com'
-    
-    surrogate_map.insert(pii, surrogate, 'URL')
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='NUMBER'), surrogate)
     return surrogate
 
+
+def generate_url_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='URL'))
+    if surrogate is not None:
+        return surrogate
+
+    surrogate = 'http://www.' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=8)) + '.com'
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='URL'), surrogate)
+    return surrogate
+
+
 def generate_age_surrogate(pii: str, surrogate_map: SurrogateMap, year_shift: int) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='AGE'))
+    if surrogate is not None:
         return surrogate
 
     match = re.match(r'(\d+)', pii)
     if match:
         age = int(match.group(1))
-        new_age = age + year_shift
-        surrogate = str(new_age) + ' years'
+        surrogate = str(age + year_shift) + ' years'
     else:
         surrogate = pii
-    
-    surrogate_map.insert(pii, surrogate, 'DEMOGRAPHIC: Age')
+
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='AGE'), surrogate)
     return surrogate
 
+
 def generate_civil_status_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='CIVILSTATUS'))
+    if surrogate is not None:
         return surrogate
 
     surrogate = 'CivilStatus-UNKNOWN'
-
-    surrogate_map.insert(pii, surrogate, 'DEMOGRAPHIC: CivilStatus')
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='CIVILSTATUS'), surrogate)
     return surrogate
 
+
 def generate_nationality_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='NATIONALITY'))
+    if surrogate is not None:
         return surrogate
 
     surrogate = 'Nationality-UNKNOWN'
-
-    surrogate_map.insert(pii, surrogate, 'DEMOGRAPHIC: Nationality')    
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='NATIONALITY'), surrogate)
     return surrogate
 
+
 def generate_profession_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='PROFESSION'))
+    if surrogate is not None:
         return surrogate
 
     surrogate = 'Profession-UNKNOWN'
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='PROFESSION'), surrogate)
+    return surrogate
 
-    surrogate_map.insert(pii, surrogate, 'DEMOGRAPHIC: Profession')
-    return surrogate 
 
 def generate_hospital_service_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='SERVICE'))
+    if surrogate is not None:
         return surrogate
 
     surrogate = 'HospitalService-' + pii[0].upper()
-        
-    surrogate_map.insert(pii, surrogate, 'HOSPITAL: Service')
-    return surrogate 
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='SERVICE'), surrogate)
+    return surrogate
+
 
 def generate_hospital_building_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='BUILDING'))
+    if surrogate is not None:
         return surrogate
 
     surrogate = 'Building-' + pii[0].upper()
-       
-    surrogate_map.insert(pii, surrogate, 'HOSPITAL: Building')
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='BUILDING'), surrogate)
     return surrogate
 
+
 def generate_hospital_room_bed_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='ROOMBED'))
+    if surrogate is not None:
         return surrogate
 
     surrogate = 'Room-' + ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=3))
-      
-    surrogate_map.insert(pii, surrogate, 'HOSPITAL: Room-Bed')
-    return surrogate 
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='ROOMBED'), surrogate)
+    return surrogate
+
 
 def generate_personal_relationship_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='PERSONALRELATIONSHIP'))
+    if surrogate is not None:
         return surrogate
 
     surrogate = 'Relationship-UNKNOWN'
-    
-    surrogate_map.insert(pii, surrogate, 'PersonalRelationship')
-    return surrogate 
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='PERSONALRELATIONSHIP'), surrogate)
+    return surrogate
+
 
 def generate_organization_surrogate(pii: str, surrogate_map: SurrogateMap) -> str:
-    exists, surrogate = surrogate_map.get(pii)
-    if exists:
+    surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='ORGANIZATION'))
+    if surrogate is not None:
         return surrogate
 
     surrogate = 'Organization-UNKNOWN'
-       
-    surrogate_map.insert(pii, surrogate, 'Organization')
-    return surrogate 
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='ORGANIZATION'), surrogate)
+    return surrogate
