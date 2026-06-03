@@ -13,14 +13,14 @@ def names_db_path():
 
 @pytest.fixture(scope="session")
 def names_db(names_db_path):
-    return NameDatabase(str(names_db_path))
+    return NameDatabase(names_db_path)
 
 
 @pytest.fixture
 def json_map(tmp_path):
-    return JsonSurrogateMap(str(tmp_path / "map.json"))
+    return JsonSurrogateMap(tmp_path / "map.json")
 
 
 @pytest.fixture
 def sql_map(tmp_path):
-    return SqlSurrogateMap(str(tmp_path / "map.db"))
+    return SqlSurrogateMap(tmp_path / "map.db")
