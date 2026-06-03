@@ -55,7 +55,3 @@ def generate_pii_surrogate(body: PiiPayload, request: Request):
 async def map(request: Request) -> AsyncIterable[tuple[MapEntry, str]]:
     for item in request.app.state.surrogate_map:
         yield item
-
-#@app.post("/map"):
-#def map(map: MapPayload, request: Request):
-#    return request.app.state.surrogate_map.to_json()
