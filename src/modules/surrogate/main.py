@@ -28,6 +28,12 @@ class MapItem(BaseModel):
     entity_type: str = Field(description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'.")
     surrogate: str = Field(description="Replacement value for `pii`.")
 
+    def to_entry(self) -> MapEntry:
+        return MapEntry(
+            pii=self.pii,
+            entity_type=self.entity_type
+        )
+
 def _require_env(name: str) -> str:
     value = os.environ.get(name)
     if not value:
@@ -83,3 +89,13 @@ def get_map(request: Request) -> Iterable[MapItem]:
             entity_type=entry.entity_type,
             surrogate=surrogate,
         )
+
+@app.post("/map")
+def post_map(body: Iterable[MapItem], request: Request):
+    """Post an existing map to import into the server."""
+    # NOTE: Skeleton impl
+    for map_item in body:
+        entry = map_item.to_entry()
+        surrogate = map_item.surrogate
+        request.app.state.surrogate_map[entry] = surrogate
+
