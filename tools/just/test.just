@@ -8,7 +8,7 @@ default:
 
 # Run modules unit tests
 modules:
-  just dev surrogate uv run pytest
+  just dev surrogate uv run pytest src/modules/surrogate
 
 # Test deploy on minikube instance
 test:

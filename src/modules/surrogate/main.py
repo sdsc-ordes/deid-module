@@ -1,9 +1,12 @@
+from collections.abc import AsyncIterable
 import os 
+from pathlib import Path
+
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
 from generator import generate_surrogate
-from loader import NameDatabase, JsonSurrogateMap, SqlSurrogateMap
+from loader import NameDatabase, JsonSurrogateMap, SqlSurrogateMap, MapEntry
 
 from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field
@@ -16,11 +19,18 @@ class PiiPayload(BaseModel):
         description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'",
     )
 
+def _require_env(name: str) -> str:
+    value = os.environ.get(name)
+    if not value:
+        raise RuntimeError(f"Required environment variable {name!r} is not set")
+    return value
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    map_path = os.environ.get("SURROGATE_MAP_PATH")
-    map_mode = os.environ.get("SURROGATE_MAP_MODE")
-    names_db_path = os.environ.get("SURROGATE_NAMES_DB_PATH")
+    map_path = Path(_require_env("SURROGATE_MAP_PATH"))
+    map_mode = _require_env("SURROGATE_MAP_MODE")
+    names_db_path = Path(_require_env("SURROGATE_NAMES_DB_PATH"))
     app.state.names_db = NameDatabase(names_db_path)
     if map_mode == "json":
         app.state.surrogate_map = JsonSurrogateMap(map_path)
@@ -30,7 +40,7 @@ async def lifespan(app: FastAPI):
         raise ValueError(f"Unsupported SURROGATE_MAP_MODE: {map_mode}")
     yield
     if map_mode == "json":
-        app.state.surrogate_map.save_to_json()
+        app.state.surrogate_map.save(map_path)
 
 app = FastAPI(title="Surrogate Generator", lifespan=lifespan)
 
@@ -47,3 +57,8 @@ def generate_pii_surrogate(body: PiiPayload, request: Request):
         "entity_type": body.entity_type,
         "surrogate": surrogate,
     }
+
+@app.get("/map")
+async def map(request: Request) -> AsyncIterable[tuple[MapEntry, str]]:
+    for item in request.app.state.surrogate_map:
+        yield item
