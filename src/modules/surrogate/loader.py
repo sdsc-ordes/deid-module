@@ -202,5 +202,6 @@ class NameDatabase:
         """Return a random name matching gender and starting letter, or 'Doe' as fallback."""
         if gender is None or first_char is None or gender == "unknown":
             return "Doe"
-        names = self._cache.get((self._match_gender(gender), first_char.lower()))
+        gender_label = self._match_gender(gender)
+        names = self._cache.get((gender_label, first_char.lower()))
         return random.choice(names) if names else "Doe"
