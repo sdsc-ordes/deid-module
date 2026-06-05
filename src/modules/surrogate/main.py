@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
 from generator import generate_surrogate
-from loader import NameDatabase, JsonSurrogateMap, SqlSurrogateMap
+from loader import NameDatabase, JsonSurrogateMap, SqlSurrogateMap, MapEntry
 
 from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field
@@ -27,6 +27,13 @@ class MapItem(BaseModel):
     pii: str = Field(description="Personal Identifiable Information value.")
     entity_type: str = Field(description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'.")
     surrogate: str = Field(description="Replacement value for `pii`.")
+
+def _require_env(name: str) -> str:
+    value = os.environ.get(name)
+    if not value:
+        raise RuntimeError(f"Required environment variable {name!r} is not set")
+    return value
+
 
 def _require_env(name: str) -> str:
     value = os.environ.get(name)

@@ -74,26 +74,26 @@ def generate_surrogate(
 
 
 def generate_name_surrogate(pii: str, surrogate_map: SurrogateMap, names_db: NameDatabase) -> str:
-    """Replace a person name token-by-token, preserving recognised titles (Dr., Mr., …)."""
+    """Replace a person name word-by-word, preserving recognised titles (Dr., Mr., …)."""
     surrogate = surrogate_map.get(MapEntry(pii=pii, entity_type='NAME'))
     if surrogate is not None:
         return surrogate
 
-    surrogate_name = ''
+    surrogate = ''
     for name in pii.split():
         if re.match(r'^(Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Mme\.|M\.|Mme|M|Dr|Mr|Ms|Mrs|Prof)$', name):
-            surrogate_name += name + ' '
+            surrogate += name + ' '
         else:
-            token_surrogate = surrogate_map.get(MapEntry(pii=name, entity_type='NAME'))
-            if token_surrogate is not None:
-                surrogate_name += token_surrogate + ' '
+            surrogate_word = surrogate_map.get(MapEntry(pii=name, entity_type='NAME'))
+            if surrogate_word is not None:
+                surrogate += surrogate_word + ' '
             else:
                 predicted_gender = _GENDER_DETECTOR.get_gender(name)
                 first_letter = name[0]
-                token_surrogate = names_db.pick_random(predicted_gender, first_letter)
-                surrogate_name += token_surrogate + ' '
-    surrogate_map.insert(MapEntry(pii=pii, entity_type='NAME'), surrogate_name.strip())
-    return surrogate_name.strip()
+                surrogate_word = names_db.pick_random(predicted_gender, first_letter)
+                surrogate += surrogate_word + ' '
+    surrogate_map.insert(MapEntry(pii=pii, entity_type='NAME'), surrogate.strip())
+    return surrogate.strip()
 
 
 def replace_digits(pii: str) -> str:
