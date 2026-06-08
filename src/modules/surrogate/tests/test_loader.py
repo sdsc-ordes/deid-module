@@ -1,56 +1,65 @@
 import pytest
 
-from loader import JsonSurrogateMap, NameDatabase, SqlSurrogateMap
+from loader import JsonSurrogateMap, MapEntry, NameDatabase, SqlSurrogateMap
+
+
+def entry(pii: str, entity_type: str) -> MapEntry:
+    return MapEntry(pii=pii, entity_type=entity_type)
 
 
 class TestJsonSurrogateMap:
-    def test_empty_map_returns_not_found(self):
-        m = JsonSurrogateMap(None)
-        assert m.exists_in_map("anything") == (False, None)
+    def test_empty_map_returns_not_found(self, json_map):
+        assert json_map.get(entry("anything", "NAME")) is None
 
     def test_insert_and_lookup(self, json_map):
-        json_map.insert("John", "Jane", "NAME")
-        assert json_map.exists_in_map("John") == (True, "Jane")
+        json_map.insert(entry("John", "NAME"), "Jane")
+        assert json_map.get(entry("John", "NAME")) == "Jane"
 
     def test_lookup_is_case_insensitive(self, json_map):
-        json_map.insert("John", "Jane", "NAME")
-        assert json_map.exists_in_map("JOHN") == (True, "Jane")
-        assert json_map.exists_in_map("john") == (True, "Jane")
+        json_map.insert(entry("John", "NAME"), "Jane")
+        assert json_map.get(entry("JOHN", "NAME")) == "Jane"
+        assert json_map.get(entry("john", "NAME")) == "Jane"
 
     def test_persist_round_trip(self, tmp_path):
         path = tmp_path / "map.json"
-        m = JsonSurrogateMap(str(path))
-        m.insert("1990-01-01", "1993-01-01", "DATE")
-        m.save_to_json()
+        m = JsonSurrogateMap(path)
+        m.insert(entry("1990-01-01", "DATE"), "1993-01-01")
+        m.save(path)
 
-        m2 = JsonSurrogateMap(str(path))
-        assert m2.exists_in_map("1990-01-01") == (True, "1993-01-01")
+        m2 = JsonSurrogateMap(path)
+        assert m2.get(entry("1990-01-01", "DATE")) == "1993-01-01"
 
-    def test_save_with_no_path_is_noop(self):
-        m = JsonSurrogateMap(None)
-        m.insert("foo", "bar", "LOCATION")
-        m.save_to_json()
+    def test_reinsert_overwrites(self, json_map):
+        json_map.insert(entry("John", "NAME"), "Jane")
+        json_map.insert(entry("John", "NAME"), "Janet")
+        assert json_map.get(entry("John", "NAME")) == "Janet"
 
 
 class TestSqlSurrogateMap:
     def test_insert_and_lookup(self, sql_map):
-        sql_map.insert("John", "Jane", "NAME")
-        assert sql_map.exists_in_map("John") == (True, "Jane")
+        sql_map.insert(entry("John", "NAME"), "Jane")
+        assert sql_map.get(entry("John", "NAME")) == "Jane"
 
     def test_missing_pii_returns_not_found(self, sql_map):
-        assert sql_map.exists_in_map("nobody") == (False, None)
+        assert sql_map.get(entry("nobody", "NAME")) is None
 
     def test_insert_stores_lowercase(self, sql_map):
-        sql_map.insert("JOHN", "Jane", "NAME")
-        assert sql_map.exists_in_map("john") == (True, "Jane")
+        sql_map.insert(entry("JOHN", "NAME"), "Jane")
+        assert sql_map.get(entry("john", "NAME")) == "Jane"
+
+    def test_reinsert_overwrites(self, sql_map):
+        sql_map.insert(entry("John", "NAME"), "Jane")
+        sql_map.insert(entry("John", "NAME"), "Janet")
+        assert sql_map.get(entry("John", "NAME")) == "Janet"
 
 
 class TestNameDatabase:
     @pytest.mark.parametrize("gender,expected", [
-        ("female", {"Alice", "Anna"}),
-        ("male", {"Aaron", "Adam"}),
-        ("mostly_male", {"Aaron", "Adam"}),
-        ("mostly_female", {"Alice", "Anna"}),
+        pytest.param("female",        {"Alice", "Anna"},   id="female"),
+        pytest.param("male",          {"Aaron", "Adam"},   id="male"),
+        pytest.param("mostly_male",   {"Aaron", "Adam"},   id="mostly_male"),
+        pytest.param("mostly_female", {"Alice", "Anna"},   id="mostly_female"),
+        pytest.param("androgynous",   {"Alex", "Adrian"},  id="androgynous"),
     ])
     def test_pick_random_by_gender(self, names_db, gender, expected):
         assert names_db.pick_random(gender) in expected
