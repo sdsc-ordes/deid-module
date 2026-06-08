@@ -28,12 +28,6 @@ class MapItem(BaseModel):
     entity_type: str = Field(description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'.")
     surrogate: str = Field(description="Replacement value for `pii`.")
 
-def _require_env(name: str) -> str:
-    value = os.environ.get(name)
-    if not value:
-        raise RuntimeError(f"Required environment variable {name!r} is not set")
-    return value
-
 
 def _require_env(name: str) -> str:
     value = os.environ.get(name)
