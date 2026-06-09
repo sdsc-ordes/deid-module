@@ -33,9 +33,9 @@ async def lifespan(app: FastAPI):
     app.state.names_db = NameDatabase(names_db_path)
 
     match map_path.suffix:
-        case "json":
+        case ".json":
             app.state.surrogate_map = JsonSurrogateMap(map_path)
-        case "db" | "sqlite":
+        case ".db" | ".sqlite":
             app.state.surrogate_map = SqlSurrogateMap(map_path)
         case _:
             raise ValueError(f"Unsupported extension: {map_path.suffix}")
