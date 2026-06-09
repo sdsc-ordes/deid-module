@@ -62,23 +62,14 @@ class TestNameDatabase:
         pytest.param("androgynous",   {"Alex", "Adrian"},  id="androgynous"),
     ])
     def test_pick_random_by_gender(self, names_db, gender, expected):
-        assert names_db.pick_random(gender, "a") in expected
+        assert names_db.pick_random(gender) in expected
 
-    def test_unknown_gender_returns_doe(self, names_db):
-        assert names_db.pick_random("unknown", "a") == "Doe"
+    def test_unknown_gender_falls_back_to_unisex(self, names_db):
+        assert names_db.pick_random("unknown") in {"Alex", "Adrian"}
 
     def test_none_gender_returns_doe(self, names_db):
-        assert names_db.pick_random(None, "a") == "Doe"
+        assert names_db.pick_random(None) == "Doe"
 
-    def test_none_first_char_returns_doe(self, names_db):
-        assert names_db.pick_random("female", None) == "Doe"
-
-    def test_missing_letter_returns_doe(self, names_db):
-        assert names_db.pick_random("female", "z") == "Doe"
-
-    def test_uppercase_first_char_is_normalised(self, names_db):
-        assert names_db.pick_random("female", "A") in {"Alice", "Anna"}
-
-    def test_empty_db_returns_doe(self, tmp_path):
-        db = NameDatabase(tmp_path)
-        assert db.pick_random("female", "a") == "Doe"
+    def test_missing_csv_returns_doe(self, tmp_path):
+        db = NameDatabase(str(tmp_path))
+        assert db.pick_random("female") == "Doe"

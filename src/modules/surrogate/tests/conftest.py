@@ -8,7 +8,7 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 @pytest.fixture(scope="session")
 def names_db_path():
-    return FIXTURES_DIR / "names_db"
+    return FIXTURES_DIR / "names_db" / "surrogate_names.csv"
 
 
 @pytest.fixture(scope="session")

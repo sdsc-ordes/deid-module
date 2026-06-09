@@ -4,6 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: "{{ $fullname }}-config"
+  namespace: {{ .Values.namespace }}
 data:
   default.yaml: |-
 {{ .Files.Get "conf/default.yaml" | indent 4 }}

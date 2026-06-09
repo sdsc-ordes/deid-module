@@ -28,19 +28,19 @@ def _require_env(name: str) -> str:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    map_path = Path(_require_env("SURROGATE_MAP_PATH"))
-    map_mode = _require_env("SURROGATE_MAP_MODE")
-    names_db_path = Path(_require_env("SURROGATE_NAMES_DB_PATH"))
+    map_path = Path(_require_env("SURROGATE_MAP_FILE"))
+    names_db_path = Path(_require_env("SURROGATE_NAMES_DB_FILE"))
     app.state.names_db = NameDatabase(names_db_path)
-    if map_mode == "json":
-        app.state.surrogate_map = JsonSurrogateMap(map_path)
-    elif map_mode == "sqlite":
-        app.state.surrogate_map = SqlSurrogateMap(map_path)
-    else:
-        raise ValueError(f"Unsupported SURROGATE_MAP_MODE: {map_mode}")
+
+    match map_path.suffix:
+        case ".json":
+            app.state.surrogate_map = JsonSurrogateMap(map_path)
+        case ".db" | ".sqlite":
+            app.state.surrogate_map = SqlSurrogateMap(map_path)
+        case _:
+            raise ValueError(f"Unsupported extension: {map_path.suffix}")
     yield
-    if map_mode == "json":
-        app.state.surrogate_map.save(map_path)
+    app.state.surrogate_map.save(map_path)
 
 app = FastAPI(title="Surrogate Generator", lifespan=lifespan)
 

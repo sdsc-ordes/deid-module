@@ -1,11 +1,14 @@
 from __future__ import annotations
 import json
 import random
-import shutil
-import sqlite3
+
 from collections.abc import Iterator
+import csv
 from pathlib import Path
+import shutil
 from typing import Protocol
+from abc import abstractmethod
+import sqlite3
 
 from pydantic import BaseModel, Field
 
@@ -154,54 +157,46 @@ _GENDER_LABELS = {
 
 
 class NameDatabase:
-    """Name list indexed by (gender, first_letter), loaded from a directory tree.
+    """Name list indexed by gender, loaded from a CSV file.
 
     Expected layout::
 
-        <names_db_path>/
-            female/   a_group.txt  b_group.txt  …
-            male/     a_group.txt  …
-            unisex/   a_group.txt  …
+        <names_db_path>.csv
+        name,gender
+        Alice,female
+        Bob,male
 
-    Each file contains one name per line. Missing directories/files are silently skipped;
+    Missing files are silently skipped;
     pick_random() falls back to "Doe" when no names are found.
     """
 
     def __init__(self, names_db_path: Path) -> None:
-        self.names_db_path = names_db_path
-        self._cache: dict[tuple[str, str], tuple[str, ...]] = self._build_cache()
+        self.names_db_path = Path(names_db_path)
+        self._cache: dict[str, list[str]] = self._build_cache()
 
-    @staticmethod
-    def _read_group_file(path: Path) -> tuple[str, ...]:
-        if not path.is_file():
-            return ()
-        return tuple({
-            line.strip()
-            for line in path.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        })
+    def _build_cache(self) -> dict[str, list[str]]:
+        cache: dict[str, list[str]] = {"female": [], "male": [], "unisex": []}
+        if not self.names_db_path.is_file():
+            return cache
 
-    def _build_cache(self) -> dict[tuple[str, str], tuple[str, ...]]:
-        cache: dict[tuple[str, str], tuple[str, ...]] = {}
-        for gender in ("female", "male", "unisex"):
-            gender_dir = self.names_db_path / gender
-            if not gender_dir.is_dir():
-                continue
-            for group_file in sorted(gender_dir.glob("*_group.txt")):
-                letter = group_file.stem.removesuffix("_group")
-                names = self._read_group_file(group_file)
-                if names:
-                    cache[(gender, letter)] = names
+        with self.names_db_path.open(encoding="utf-8", newline="") as csv_file:
+            reader = csv.DictReader(csv_file)
+            for row in reader:
+                name = row.get("name", "").strip()
+                gender = row.get("gender", "").strip().lower()
+                if name and gender in cache:
+                    cache[gender].append(name)
         return cache
 
     @staticmethod
-    def _match_gender(predicted: str) -> str:
+    def _match_gender(predicted: str | None) -> str:
         return _GENDER_LABELS.get(predicted, "unisex")
 
-    def pick_random(self, gender: str, first_char: str) -> str:
-        """Return a random name matching gender and starting letter, or 'Doe' as fallback."""
-        if gender is None or first_char is None or gender == "unknown":
+
+    def pick_random(self, gender: str | None) -> str:
+        """Return a random name matching gender, or 'Doe' as fallback."""
+        if gender is None:
             return "Doe"
         gender_label = self._match_gender(gender)
-        names = self._cache.get((gender_label, first_char.lower()))
+        names = self._cache.get(gender_label) or self._cache.get("unisex")
         return random.choice(names) if names else "Doe"
