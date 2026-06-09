@@ -118,3 +118,32 @@ def test_map_streams_incrementally(map_client):
 
     assert lines[0]["pii"]["entity_type"] == "PROFESSION"
     assert lines[0]["pii"]["value"].startswith("job-")
+
+
+def _jsonl(items):
+    return ("\n".join(json.dumps(item) for item in items) + "\n").encode()
+
+
+def test_import_round_trips_through_get_map(map_client):
+    items = [
+        {"pii": {"value": "alice", "entity_type": "NAME"}, "surrogate": "Anna"},
+        {"pii": {"value": "01/01/2020", "entity_type": "DATE"}, "surrogate": "01/01/2023"},
+    ]
+    resp = map_client.post("/map", content=_jsonl(items), headers={"content-type": JSONL_MEDIA_TYPE})
+    assert resp.status_code == 204
+
+    resp = map_client.get("/map")
+    by_value = {item["pii"]["value"]: item for item in _parse_jsonl(resp)}
+    assert by_value == {item["pii"]["value"]: item for item in items}
+
+
+def test_import_empty_body(map_client):
+    resp = map_client.post("/map", content=b"", headers={"content-type": JSONL_MEDIA_TYPE})
+    assert resp.status_code == 204
+    assert map_client.get("/map").text == ""
+
+
+def test_import_invalid_line_returns_422(map_client):
+    body = b'{"pii": {"value": "alice", "entity_type": "NAME"}, "surrogate": "Anna"}\n{"not": "a MapItem"}\n'
+    resp = map_client.post("/map", content=body, headers={"content-type": JSONL_MEDIA_TYPE})
+    assert resp.status_code == 422
