@@ -6,27 +6,15 @@ from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
 from generator import generate_surrogate
-from loader import NameDatabase, JsonSurrogateMap, SqlSurrogateMap, MapEntry
+from loader import NameDatabase, JsonSurrogateMap, SqlSurrogateMap
 
 from fastapi import FastAPI, Request
-from pydantic import BaseModel, Field
+
+from .models import Pii, MapItem
 
 load_dotenv()
 
 
-class PiiPayload(BaseModel):
-    """PII Payload that requires a surrogate."""
-
-    pii: str = Field(description="Personal Identifiable Information value to replace, e.g. 'John Doe', '01/01/1990', 'New York'.")
-    entity_type: str = Field(description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'.")
-
-
-class MapItem(BaseModel):
-    """A single PII to surrogate mapping."""
-
-    pii: str = Field(description="Personal Identifiable Information value.")
-    entity_type: str = Field(description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'.")
-    surrogate: str = Field(description="Replacement value for `pii`.")
 
 
 def _require_env(name: str) -> str:
@@ -55,7 +43,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Surrogate Generator", lifespan=lifespan)
 
 @app.post("/pii")
-def generate_pii_surrogate(body: PiiPayload, request: Request) -> MapItem:
+def generate_pii_surrogate(body: Pii, request: Request) -> MapItem:
     """Surrogate a single PII value. Idempotent per (pii, entity_type)."""
     surrogate = generate_surrogate(
         body.pii,
@@ -63,17 +51,16 @@ def generate_pii_surrogate(body: PiiPayload, request: Request) -> MapItem:
         request.app.state.surrogate_map,
         request.app.state.names_db,
     )
-    return MapItem(pii=body.pii, entity_type=body.entity_type, surrogate=surrogate)
+    return MapItem(
+        pii=Pii(value=body.value, entity_type=body.entity_type),
+        surrogate=surrogate
+    )
 
 
 @app.get("/map")
 def get_map(request: Request) -> Iterable[MapItem]:
     """Stream all stored mappings as JSON Lines."""
     # data comes from validated map storage
-    for entry, surrogate in request.app.state.surrogate_map:
+    for item in request.app.state.surrogate_map:
         # model_construct skips validation -> faster instantiation
-        yield MapItem.model_construct(
-            pii=entry.pii,
-            entity_type=entry.entity_type,
-            surrogate=surrogate,
-        )
+        yield item

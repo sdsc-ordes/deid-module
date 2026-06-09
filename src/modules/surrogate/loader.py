@@ -8,24 +8,12 @@ import csv
 from pathlib import Path
 import shutil
 from typing import Protocol
-from abc import abstractmethod
 import sqlite3
 
-from pydantic import BaseModel, Field
+from .models import MapItem, Pii
 
 
-class MapEntry(BaseModel, frozen=True):
 
-    pii: str
-    entity_type: str = Field(
-        description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'",
-    )
-
-    def to_sanitized(self) -> MapEntry:
-        return MapEntry(
-            pii = self.pii.lower(),
-            entity_type = self.entity_type,
-        )
 
 class SurrogateMap(Protocol):
     """Protocol for a case-insensitive pii → surrogate persistence map."""
@@ -34,11 +22,11 @@ class SurrogateMap(Protocol):
 
     def load(self, map_path: Path) -> None: ...
 
-    def insert(self, entry: MapEntry, surrogate: str) -> None: ...
+    def insert(self, item: MapItem) -> None: ...
 
-    def get(self, entry: MapEntry) -> str | None: ...
+    def get(self, pii: Pii) -> str | None: ...
 
-    def __iter__(self) -> Iterator[tuple[MapEntry, str]]: ...
+    def __iter__(self) -> Iterator[MapItem]: ...
 
 
 
@@ -61,12 +49,15 @@ class SqlSurrogateMap:
                 """
             )
 
-    def __iter__(self) -> Iterator[tuple[MapEntry, str]]:
+    def __iter__(self) -> Iterator[MapItem]:
         with closing(sqlite3.connect(self._map_path)) as conn:
             for pii, surrogate, entity_type in conn.execute(
                 "SELECT pii, surrogate, entity_type FROM surrogate_map"
             ):
-                yield MapEntry(pii=pii, entity_type=entity_type), surrogate
+                yield MapItem(
+                    pii=Pii(value=pii, entity_type=entity_type),
+                    surrogate=surrogate,
+                )
 
     def save(self, map_path: Path):
         _ = shutil.copy(self._map_path, map_path)
@@ -74,23 +65,23 @@ class SqlSurrogateMap:
     def load(self, map_path: Path):
         self._map_path = map_path
 
-    def insert(self, map_entry: MapEntry, surrogate: str) -> None:
-        clean_entry = map_entry.to_sanitized()
-        with sqlite3.connect(self._map_path) as conn:
-            conn.execute(
+    def insert(self, item: MapItem) -> None:
+        clean_item = item.to_sanitized()
+        with closing(sqlite3.connect(self._map_path)) as conn:
+            _ = conn.execute(
                 """
                 INSERT INTO surrogate_map (pii, entity_type, surrogate) VALUES (?, ?, ?)
                 ON CONFLICT(pii, entity_type) DO UPDATE SET surrogate = excluded.surrogate
                 """,
-                (clean_entry.pii, clean_entry.entity_type, surrogate),
+                (clean_item.pii.value, clean_item.pii.entity_type, clean_item.surrogate),
             )
 
-    def get(self, map_entry: MapEntry) -> str | None:
-        clean_entry = map_entry.to_sanitized()
-        with sqlite3.connect(self._map_path) as conn:
+    def get(self, pii: Pii) -> str | None:
+        clean_pii = pii.to_sanitized()
+        with closing(sqlite3.connect(self._map_path)) as conn:
             row = conn.execute(
                 "SELECT surrogate FROM surrogate_map WHERE pii = ? AND entity_type = ?",
-                (clean_entry.pii, clean_entry.entity_type),
+                (clean_pii.value, clean_pii.entity_type),
             ).fetchone()
         return row[0] if row else None
 
@@ -101,7 +92,7 @@ class JsonSurrogateMap:
 
     The json serialization is:
     [
-      [json(MapEntry), surrogate],
+      [MapItem],
     ]
 
     """
@@ -115,7 +106,7 @@ class JsonSurrogateMap:
         self._map: dict[MapEntry, str]
         self.load(map_path)
 
-    def __iter__(self) -> Iterator[tuple[MapEntry, str]]:
+    def __iter__(self) -> Iterator[MapItem]:
         return iter(self._map.items())
 
     def load(self, map_path: Path) -> None:
@@ -129,23 +120,24 @@ class JsonSurrogateMap:
 
     def _serialize(self) -> list[tuple[dict[str, str], str]]:
         return [
-            (entry.model_dump(), surrogate)
-            for entry, surrogate in self._map.items()
+            (pii.model_dump(), surrogate)
+            for pii, surrogate in self._map.items()
         ]
 
     def save(self, map_path: Path) -> None:
         with open(map_path, "w", encoding="utf-8") as f:
             json.dump(self._serialize(), f, indent=2)
 
-    def insert(self, map_entry: MapEntry, surrogate: str) -> None:
-        self._map[map_entry.to_sanitized()] = surrogate
+    def insert(self, item: MapItem) -> None:
+        clean_item = item.to_sanitized()
+        self._map[clean_item.pii] = clean_item.surrogate
 
     def get(
         self,
-        map_entry: MapEntry,
+        pii: Pii,
     ) -> str | None:
-        clean_entry = map_entry.to_sanitized()
-        return self._map.get(clean_entry)
+        clean_pii = pii.to_sanitized()
+        return self._map.get(clean_pii)
 
 
 _GENDER_LABELS = {
