@@ -1,4 +1,4 @@
-{{ $fullname := include "presidio.anonymizer.fullname" . }}
+{{ $fullname := include "surrogate.fullname" . }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,11 +11,11 @@ metadata:
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
 spec:
-  type: {{ .Values.anonymizer.service.type }}
+  type: {{ .Values.surrogate.service.type }}
   ports:
-  - port: {{ .Values.anonymizer.service.externalPort }}
-    targetPort: {{ .Values.anonymizer.service.internalPort }}
+  - port: {{ .Values.surrogate.service.externalPort }}
+    targetPort: {{ .Values.surrogate.service.internalPort }}
     protocol: TCP
-    name: {{ .Values.anonymizer.service.name }}
+    name: {{ .Values.surrogate.service.name }}
   selector:
     app: {{ $fullname }}

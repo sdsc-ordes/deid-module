@@ -90,7 +90,7 @@ def generate_name_surrogate(pii: str, surrogate_map: SurrogateMap, names_db: Nam
             else:
                 predicted_gender = _GENDER_DETECTOR.get_gender(name)
                 first_letter = name[0]
-                surrogate_word = names_db.pick_random(predicted_gender, first_letter)
+                surrogate_word = names_db.pick_random(predicted_gender)
                 surrogate += surrogate_word + ' '
     surrogate_map.insert(MapEntry(pii=pii, entity_type='NAME'), surrogate.strip())
     return surrogate.strip()

@@ -2,6 +2,9 @@
 src/modules/surrogate/config/
 src/chart/conf/surrogate/
 
+AGENTS.md
+CLAUDE.md
+.agents/
 .direnv/
 .devenv/
 

@@ -10,9 +10,8 @@ JSONL_MEDIA_TYPE = "application/jsonl"
 
 @pytest.fixture
 def client(tmp_path, monkeypatch, names_db_path):
-    monkeypatch.setenv("SURROGATE_MAP_PATH", str(tmp_path / "map.json"))
-    monkeypatch.setenv("SURROGATE_MAP_MODE", "json")
-    monkeypatch.setenv("SURROGATE_NAMES_DB_PATH", str(names_db_path))
+    monkeypatch.setenv("SURROGATE_MAP_FILE", str(tmp_path / "map.json"))
+    monkeypatch.setenv("SURROGATE_NAMES_DB_FILE", str(names_db_path))
     with TestClient(app) as c:
         yield c
 

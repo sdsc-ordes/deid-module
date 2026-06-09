@@ -5,6 +5,7 @@ apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: presidio-ingress
+  namespace: {{ .Values.namespace }}
   labels:
     app: presidio-ingress
     chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}

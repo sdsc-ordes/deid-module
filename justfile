@@ -30,11 +30,9 @@ render:
     just format
 
 # Apply manifests in dir to the cluster.
-deploy dir="src":
-  # decrypts+sources the .env file and injects values into the manifests
+deploy dir="src/chart":
   cd {{root_dir}} && \
-    just secrets::exec-env \
-      "kubectl kustomize {{dir}} | kubectl apply -f -"
+    helm upgrade --install dev {{dir}} -n ml-clin-deid -f {{dir}}/values.yaml
 
 # Enter development shell
 dev shell="default" *args:
