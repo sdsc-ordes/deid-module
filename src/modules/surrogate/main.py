@@ -10,7 +10,7 @@ from loader import NameDatabase, JsonSurrogateMap, SqlSurrogateMap
 
 from fastapi import FastAPI, Request
 
-from .models import Pii, MapItem
+from models import Pii, MapItem
 
 load_dotenv()
 
@@ -46,13 +46,12 @@ app = FastAPI(title="Surrogate Generator", lifespan=lifespan)
 def generate_pii_surrogate(body: Pii, request: Request) -> MapItem:
     """Surrogate a single PII value. Idempotent per (pii, entity_type)."""
     surrogate = generate_surrogate(
-        body.pii,
-        body.entity_type,
+        body,
         request.app.state.surrogate_map,
         request.app.state.names_db,
     )
     return MapItem(
-        pii=Pii(value=body.value, entity_type=body.entity_type),
+        pii=body,
         surrogate=surrogate
     )
 
