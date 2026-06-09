@@ -64,7 +64,7 @@ def get_map(request: Request) -> Iterable[MapItem]:
         yield item
 
 
-@app.post("/map")
+@app.post("/map", status_code=204)
 def post_map(body: list[MapItem], request: Request) -> None:
     """Import map items into the server (merge/upsert). Existing keys are overwritten; keys not present in the payload are left unchanged."""
     for item in body:
