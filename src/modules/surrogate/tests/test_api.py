@@ -3,7 +3,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from main import app
+from surrogate.main import app
 
 JSONL_MEDIA_TYPE = "application/jsonl"
 

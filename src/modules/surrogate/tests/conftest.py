@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 
-from loader import JsonSurrogateMap, NameDatabase, SqlSurrogateMap
+from surrogate.loader import JsonSurrogateMap, NameDatabase, SqlSurrogateMap
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 

@@ -1,7 +1,7 @@
 import pytest
 
 from loader import JsonSurrogateMap, NameDatabase, SqlSurrogateMap
-from models import MapItem, Pii
+from surrogate.models import MapItem, Pii
 
 
 def _pii(pii: str, entity_type: str) -> Pii:
