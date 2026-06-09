@@ -201,3 +201,4 @@ class NameDatabase:
             return "Doe"
         gender_label = self._match_gender(gender)
         names = self._cache.get(gender_label) or self._cache.get("unisex")
+        return random.choice(names) if names else "Doe"
