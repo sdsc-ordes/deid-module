@@ -1,0 +1,73 @@
+{{ $fullname := include "surrogate.fullname" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ $fullname }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ $fullname }}
+  template:
+    metadata:
+      labels:
+        app: {{ $fullname }}
+    spec:
+      initContainers:
+        - name: seed-surrogate-map
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /data/surrogate_map.json ]; then
+                cp /seed/surrogate_map.json /data/surrogate_map.json
+              fi
+              if [ ! -f /data/surrogate_map.db ]; then
+                base64 -d /seed/surrogate_map.db.b64 > /data/surrogate_map.db
+              fi
+          volumeMounts:
+            - name: {{ $fullname }}-surrogate-map-seed-vol
+              mountPath: /seed
+            - name: {{ $fullname }}-surrogate-map-data-vol
+              mountPath: /data
+      volumes:
+        - name: {{ $fullname }}-surrogate-names-vol
+          configMap:
+            name: {{ default (printf "%s-surrogate-names" (trim $fullname)) .Values.surrogate.surrogateNamesConfigMapName }}
+        - name: {{ $fullname }}-surrogate-map-seed-vol
+          configMap:
+            name: {{ default (printf "%s-surrogate-map-config" (trim $fullname)) .Values.surrogate.surrogateMapConfigMapName }}
+        - name: {{ $fullname }}-surrogate-map-data-vol
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-map
+      containers:
+      - name: {{ $fullname }}
+        image: {{ .Values.registry }}/{{ .Values.surrogate.name }}:{{ default .Chart.AppVersion .Values.tag }}
+        imagePullPolicy: {{ default "IfNotPresent" .Values.surrogate.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.surrogate.service.internalPort }}
+        resources:
+          requests:
+            memory: {{ .Values.surrogate.container.resources.requests.memory }}
+            cpu: {{ .Values.surrogate.container.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.surrogate.container.resources.limits.memory }}
+            cpu: {{ .Values.surrogate.container.resources.limits.cpu }}
+        envFrom:
+          - configMapRef:
+              name: {{ default (printf "%s-surrogate-config" (trim $fullname)) .Values.surrogate.defaultConfigMapName }}
+        volumeMounts:
+          - name: {{ $fullname }}-surrogate-names-vol
+            mountPath: /app/conf/surrogate_db/surrogate_names.csv
+            subPath: surrogate_names.csv
+          - name: {{ $fullname }}-surrogate-map-data-vol
+            mountPath: /app/data
+      {{ if .Values.privateRegistry }}imagePullSecrets:
+        - name: {{.Values.privateRegistry}}{{ end }}

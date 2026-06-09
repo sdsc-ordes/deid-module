@@ -11,7 +11,7 @@ modules:
   just dev surrogate uv run pytest src/modules/surrogate
 
 # Test deploy on minikube instance
-test:
+deployment:
   just dev default bash ./tests/minikube_deploy
   just dev default minikube stop
 
