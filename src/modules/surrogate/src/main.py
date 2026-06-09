@@ -66,6 +66,6 @@ def get_map(request: Request) -> Iterable[MapItem]:
 
 @app.post("/map")
 def post_map(body: list[MapItem], request: Request) -> None:
-    """Import an existing map into the server. Overwrites existing entries."""
+    """Import map items into the server (merge/upsert). Existing keys are overwritten; keys not present in the payload are left unchanged."""
     for item in body:
         request.app.state.surrogate_map.insert(item)
