@@ -5,11 +5,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
-from generator import generate_surrogate
-from loader import NameDatabase, JsonSurrogateMap, SqlSurrogateMap
-
 from fastapi import FastAPI, Request
 
+from generator import generate_surrogate
+from loader import NameDatabase, JsonSurrogateMap, SqlSurrogateMap
 from models import Pii, MapItem
 
 load_dotenv()
