@@ -190,8 +190,6 @@ class NameDatabase:
 
     @staticmethod
     def _match_gender(predicted: str | None) -> str:
-        if not predicted:
-            return "unisex"
         return _GENDER_LABELS.get(predicted, "unisex")
 
 
