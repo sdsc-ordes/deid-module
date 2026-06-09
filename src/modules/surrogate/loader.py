@@ -60,7 +60,8 @@ class SqlSurrogateMap:
                 )
 
     def save(self, map_path: Path):
-        _ = shutil.copy(self._map_path, map_path)
+        if map_path != self._map_path:
+            _ = shutil.copy(self._map_path, map_path)
 
     def load(self, map_path: Path):
         self._map_path = map_path
@@ -75,6 +76,7 @@ class SqlSurrogateMap:
                 """,
                 (clean_item.pii.value, clean_item.pii.entity_type, clean_item.surrogate),
             )
+            conn.commit()
 
     def get(self, pii: Pii) -> str | None:
         clean_pii = pii.to_sanitized()
@@ -107,13 +109,14 @@ class JsonSurrogateMap:
         self.load(map_path)
 
     def __iter__(self) -> Iterator[MapItem]:
-        return iter(self._map.items())
+        for pii, surrogate in self._map.items():
+            yield MapItem(pii=pii, surrogate=surrogate)
 
     def load(self, map_path: Path) -> None:
         if map_path.exists():
             with open(map_path, encoding="utf-8") as f:
                 self._map = {
-                    MapEntry(**entry): surrogate for entry, surrogate in json.load(f)
+                    Pii(**entry): surrogate for entry, surrogate in json.load(f)
                 }
         else:
             self._map = {}
