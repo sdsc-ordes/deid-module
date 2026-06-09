@@ -56,7 +56,7 @@ def generate_pii_surrogate(body: Pii, request: Request) -> MapItem:
 
 
 @app.get("/map")
-def get_map(request: Request) -> Iterable[MapItem]:
+def export_surrogate_map(request: Request) -> Iterable[MapItem]:
     """Stream all stored mappings as JSON Lines."""
     # data comes from validated map storage
     for item in request.app.state.surrogate_map:
@@ -65,7 +65,7 @@ def get_map(request: Request) -> Iterable[MapItem]:
 
 
 @app.post("/map", status_code=204)
-def post_map(body: list[MapItem], request: Request) -> None:
+def import_surrogate_map(body: list[MapItem], request: Request) -> None:
     """Import map items into the server (merge/upsert). Existing keys are overwritten; keys not present in the payload are left unchanged."""
     for item in body:
         request.app.state.surrogate_map.insert(item)
