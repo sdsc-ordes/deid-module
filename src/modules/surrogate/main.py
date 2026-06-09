@@ -1,23 +1,21 @@
-from collections.abc import AsyncIterable
-import os 
+import os
+from collections.abc import Iterable
 from pathlib import Path
 
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
 from generator import generate_surrogate
-from loader import NameDatabase, JsonSurrogateMap, SqlSurrogateMap, MapEntry
+from loader import NameDatabase, JsonSurrogateMap, SqlSurrogateMap
 
 from fastapi import FastAPI, Request
-from pydantic import BaseModel, Field
+
+from models import Pii, MapItem
 
 load_dotenv()
 
-class PiiPayload(BaseModel):
-    pii: str = Field(description="Personal Identifiable Information value to be surrogated, e.g. 'John Doe', '01/01/1990', 'New York'")
-    entity_type: str = Field(
-        description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'",
-    )
+
+
 
 def _require_env(name: str) -> str:
     value = os.environ.get(name)
@@ -45,20 +43,23 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Surrogate Generator", lifespan=lifespan)
 
 @app.post("/pii")
-def generate_pii_surrogate(body: PiiPayload, request: Request):
+def generate_pii_surrogate(body: Pii, request: Request) -> MapItem:
+    """Surrogate a single PII value. Idempotent per (pii, entity_type)."""
     surrogate = generate_surrogate(
-        body.pii,
-        body.entity_type,
+        body,
         request.app.state.surrogate_map,
         request.app.state.names_db,
     )
-    return {
-        "pii": body.pii,
-        "entity_type": body.entity_type,
-        "surrogate": surrogate,
-    }
+    return MapItem(
+        pii=body,
+        surrogate=surrogate
+    )
+
 
 @app.get("/map")
-async def map(request: Request) -> AsyncIterable[tuple[MapEntry, str]]:
+def get_map(request: Request) -> Iterable[MapItem]:
+    """Stream all stored mappings as JSON Lines."""
+    # data comes from validated map storage
     for item in request.app.state.surrogate_map:
+        # model_construct skips validation -> faster instantiation
         yield item
