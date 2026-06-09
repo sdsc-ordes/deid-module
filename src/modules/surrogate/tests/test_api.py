@@ -17,14 +17,13 @@ def client(tmp_path, monkeypatch, names_db_path):
 
 
 @pytest.fixture(params=[
-    pytest.param(("json", "map.json"), id="json"),
-    pytest.param(("sqlite", "map.db"), id="sqlite"),
+    pytest.param(("map.json"), id="json"),
+    pytest.param(("map.db"), id="sqlite"),
 ])
 def map_client(request, tmp_path, monkeypatch, names_db_path):
-    mode, filename = request.param
-    monkeypatch.setenv("SURROGATE_MAP_PATH", str(tmp_path / filename))
-    monkeypatch.setenv("SURROGATE_MAP_MODE", mode)
-    monkeypatch.setenv("SURROGATE_NAMES_DB_PATH", str(names_db_path))
+    filename = request.param
+    monkeypatch.setenv("SURROGATE_MAP_FILE", str(tmp_path / filename))
+    monkeypatch.setenv("SURROGATE_NAMES_DB_FILE", str(names_db_path))
     with TestClient(app) as c:
         yield c
 
