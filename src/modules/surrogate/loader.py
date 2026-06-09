@@ -182,8 +182,8 @@ class NameDatabase:
         with self.names_db_path.open(encoding="utf-8", newline="") as csv_file:
             reader = csv.DictReader(csv_file)
             for row in reader:
-                name = (row.get("name") or "").strip()
-                gender = (row.get("gender") or "").strip().lower()
+                name = row.get("name", "").strip()
+                gender = row.get("gender", "").strip().lower()
                 if name and gender in cache:
                     cache[gender].append(name)
         return cache
