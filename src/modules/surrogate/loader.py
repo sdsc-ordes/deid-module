@@ -10,7 +10,7 @@ import shutil
 from typing import Protocol
 import sqlite3
 
-from .models import MapItem, Pii
+from models import MapItem, Pii
 
 
 
@@ -103,7 +103,7 @@ class JsonSurrogateMap:
         self._map_path = map_path
         # self._map is a private representation optimized for access speed.
         # It is not meant to be serialized as-is.
-        self._map: dict[MapEntry, str]
+        self._map: dict[Pii, str]
         self.load(map_path)
 
     def __iter__(self) -> Iterator[MapItem]:
@@ -182,7 +182,7 @@ class NameDatabase:
 
     @staticmethod
     def _match_gender(predicted: str | None) -> str:
-        return _GENDER_LABELS.get(predicted, "unisex")
+        return _GENDER_LABELS.get(str(predicted), "unisex")
 
 
     def pick_random(self, gender: str | None) -> str:
