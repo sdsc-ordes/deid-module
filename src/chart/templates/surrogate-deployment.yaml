@@ -19,31 +19,10 @@ spec:
       labels:
         app: {{ $fullname }}
     spec:
-      initContainers:
-        - name: seed-surrogate-map
-          image: busybox:1.36
-          command:
-            - sh
-            - -c
-            - |
-              if [ ! -f /data/surrogate_map.json ]; then
-                cp /seed/surrogate_map.json /data/surrogate_map.json
-              fi
-              if [ ! -f /data/surrogate_map.db ]; then
-                base64 -d /seed/surrogate_map.db.b64 > /data/surrogate_map.db
-              fi
-          volumeMounts:
-            - name: {{ $fullname }}-surrogate-map-seed-vol
-              mountPath: /seed
-            - name: {{ $fullname }}-surrogate-map-data-vol
-              mountPath: /data
       volumes:
         - name: {{ $fullname }}-surrogate-names-vol
           configMap:
             name: {{ default (printf "%s-surrogate-names" (trim $fullname)) .Values.surrogate.surrogateNamesConfigMapName }}
-        - name: {{ $fullname }}-surrogate-map-seed-vol
-          configMap:
-            name: {{ default (printf "%s-surrogate-map-config" (trim $fullname)) .Values.surrogate.surrogateMapConfigMapName }}
         - name: {{ $fullname }}-surrogate-map-data-vol
           persistentVolumeClaim:
             claimName: {{ $fullname }}-map
@@ -65,8 +44,8 @@ spec:
               name: {{ default (printf "%s-surrogate-config" (trim $fullname)) .Values.surrogate.defaultConfigMapName }}
         volumeMounts:
           - name: {{ $fullname }}-surrogate-names-vol
-            mountPath: /app/conf/surrogate_db/surrogate_names.csv
-            subPath: surrogate_names.csv
+            mountPath: /app/conf/surrogate/example_names.csv
+            subPath: example_names.csv
           - name: {{ $fullname }}-surrogate-map-data-vol
             mountPath: /app/data
       {{ if .Values.privateRegistry }}imagePullSecrets:

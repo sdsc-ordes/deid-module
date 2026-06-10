@@ -1,6 +1,8 @@
+#MacOS
+.DS_Store
+
 #Python config files: surrogate map and surrogate names' files
 src/modules/surrogate/config/
-src/chart/conf/surrogate/
 
 AGENTS.md
 CLAUDE.md
