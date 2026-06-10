@@ -21,6 +21,9 @@ docker run -p 8000:80 fastapi-app
 
 Launch FastAPI server with `uv run fastapi dev`. 
 
+## Import an Existing Map
+
+To load an existing surrogate map into the surrogate service, you may use the helper script [`import-surrogate-map`](tools/scripts/import-surrogate-map).
 
 ## Presidio Integration
 
