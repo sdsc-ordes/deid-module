@@ -21,6 +21,11 @@ if [[ ! -f "$jsonl_path" ]]; then
     exit 1
 fi
 
+if [[ "$(basename "$jsonl_path")" != *.jsonl ]]; then
+    echo "Error: file must be in .jsonl format: $jsonl_path" >&2
+    exit 1
+fi
+
 curl --fail-with-body \
     --show-error \
     -vH 'Content-Type: application/jsonl' \

@@ -1,0 +1,3 @@
+{"pii": {"value": "Sebastian", "entity_type": "NAME"}, "surrogate": "Sabas"}
+{"pii": {"value": "Steve", "entity_type": "NAME"}, "surrogate": "Simone"}
+{"pii": {"value": "Zurich", "entity_type": "LOCATION"}, "surrogate": "Ville_Z"}
