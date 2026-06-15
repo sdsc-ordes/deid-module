@@ -1,6 +1,6 @@
 import pytest
 
-from loader import JsonSurrogateMap, NameDatabase, SqlSurrogateMap
+from loader import JsonSurrogateMap, NameDatabase
 from models import MapItem, Pii
 
 

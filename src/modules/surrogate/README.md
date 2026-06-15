@@ -19,7 +19,7 @@ docker run -p 8000:80 fastapi-app
 
 ## fast API
 
-Launch FastAPI server with `uv run fastapi dev`. 
+Launch FastAPI server with `uv run fastapi dev`.
 
 ## Import an Existing Map
 
@@ -31,9 +31,8 @@ Here is the expected flow of this module for its integration with Presidio.
 
 Key references:
 
-- *[Presidio API documentation for Analyzer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Analyzer)
-- **[Presidio API documentation for Anonymizer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Anonymizer)
-
+- \*[Presidio API documentation for Analyzer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Analyzer)
+- \*\*[Presidio API documentation for Anonymizer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Anonymizer)
 
 ```mermaid
 sequenceDiagram
