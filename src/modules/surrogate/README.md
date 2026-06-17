@@ -41,7 +41,7 @@ sequenceDiagram
     participant Anon as Presidio-Anonymizer
     participant O as Presidio-Surrogate-Operator
     participant SG as Surrogate-Generator
-    participant VK as Valkey
+    participant SM as Surrogate-Map
 
     PT-)An: POST /analyze *
     An-)An: Detect PIIs in text
@@ -51,12 +51,12 @@ sequenceDiagram
     Anon-)O: Send PIIs one by one
     O-)SG: POST /pii
     SG-)SG: Generate surrogate for PII
-    SG-)VK: PII?
+    SG-)SM: PII?
     alt in cache
-        VK->>SG: surrogate
+        SM->>SG: surrogate
     else missing
         SG->>SG: Generate
-        SG->>VK: Insert
+        SG->>SM: Insert
     end
     SG-->>O: return surrogate
     O-->>Anon: return surrogate
