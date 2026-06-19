@@ -1,88 +1,80 @@
 # Services management
 
-The deployment defines multiple service (or application), each being a
-collection of kubernetes manifests located in `src/<service>/`.
+The deployment is packaged as a single Helm chart located in `src/chart/`.
+It bundles the upstream Presidio services (analyzer, anonymizer) together with
+the custom services developed in this repository (surrogate).
 
 ## Structure
 
-- `external/`: third party resources
-- `src/`: deployable manifests
-- secrets are encrypted with sops+age and persisted in `src/secrets/`
-
-Each service is structured as follows (supported tools are `ytt` and `helm`):
-
-```text
-├── external
-│  └── <tool>
-│     └── <service>/... # <- third party templates
-└── src
-   └── <service>
-      ├── additional-manifest.yaml # <- custom manifests for this deployment
-      ├── kustomization.yaml # <- kustomization file to select resources
-      └── <tool>
-         ├── out/... # <- rendered manifests
-         └── values.yaml # <- values used for templating
-```
+- `src/chart/`: the Helm chart deployed to the cluster
+  - `Chart.yaml`: chart metadata
+  - `values.yaml`: default values (overridable at install time)
+  - `templates/`: kubernetes manifest templates
+  - `conf/`: default Presidio configuration files (exposed as ConfigMaps)
+  - `data/`: bundled example data (e.g. the example surrogate map)
+- `src/modules/`: source code for the custom services built in this repo
+  - `surrogate/`: the surrogate-generation FastAPI service (see its `README.md`)
+- `external/`: third-party resources fetched and pinned with
+  [vendir](https://carvel.dev/vendir) (the upstream Presidio repo), plus local
+  patches in `external/patches/`
+- `tools/`: the nix flake and the `just` recipe modules
 
 ## Templating
 
-[ytt](https://carvel.dev/ytt) is the preferred rendering engine, but helm is
-also supported as many upstream templates are distributed with
-[helm](https://helm.sh).
-
-When running `just render`, we attempt to render each service with helm and then
-with ytt and save the rendered manifests in the repository.
-
-## Deployment
-
-When deploying with `just deploy`, deployment is done with kustomize
-(`kubectl -k`). This means that the `src` and each of its subdirectories contain
-a `kustomization.yaml` file which determine what manifests are included in the
-deployment.
-
-For example, running `just deploy src/` will recursively parse
-`src/kustomization.yaml` and the `kustomization.yaml` from each resources
-declared in that file. This allows to simply exclude services or manifests by
-commenting them out of `kustomization.yaml`.
-
-## Updating a service
-
-Here is the typical workflow to re-deploy a service that has been updated
-upstream.
-
-1. Update the external manifest templates. This will update the `vendir` lock
-   file and fetch the latest templates into `external/<tool>/<service>`.
-
-```bash
-just external::refresh
-```
-
-2. Render the manifests with the new templates.
+The chart is rendered with [helm](https://helm.sh). Running `just render`
+templates the chart with the values in `src/chart/values.yaml` and writes the
+rendered manifests under `build/`:
 
 ```bash
 just render
 ```
 
-> [!NOTE]
-> This may fail if the new templates broke compatibility with existing values,
-> in which case you will need to update your values in
-> `src/<service>/<tool>/values.yaml`. Also watch out in case the upstream added
-> new template files, as you may need to include them in the service
-> `kustomization.yaml`.
+This is equivalent to `helm template dev src/chart -f src/chart/values.yaml
+--output-dir build` followed by formatting.
 
-3. Deploy the updated manifests.
+## Deployment
+
+`just deploy` installs (or upgrades) the chart on the cluster with
+`helm upgrade --install`:
 
 ```bash
-just deploy src/<service>
+just deploy
 ```
 
-> [!IMPORTANT]
-> In some cases, you may want to manually delete resources related to the
-> service. You can achieve that with `just delete src/<service>` or use
-> `kubectl delete` to delete specific resoruces.
+By default this deploys `src/chart` as release `dev` into the `ml-clin-deid`
+namespace. You can point it at another chart directory by passing it as an
+argument (`just deploy <dir>`).
 
-## Adding custom manifests
+To configure the installation, override values from `src/chart/values.yaml`
+(see the root `README.md` for the published-chart workflow with a custom
+`values.yaml`).
 
-Custom manifests (e.g. additional volumes) can be added inside `src/<service>/`,
-but they need to be added as a resource in `kustomization.yaml` file in the same
-directory.
+## Updating an external dependency
+
+The upstream Presidio sources are vendored under `external/repos/` and pinned in
+`external/vendir.lock.yml`. The typical workflow to refresh them is:
+
+1. Update the external sources to their latest version. This updates the lock
+   file and fetches the sources into `external/repos/`.
+
+```bash
+just external::refresh
+```
+
+2. (Optional) Re-apply the local patches in `external/patches/`.
+
+```bash
+just external::patch
+```
+
+> [!NOTE]
+> An upstream update may break compatibility with the current chart values or
+> patches. Watch for failures when re-applying patches and adjust them or the
+> chart accordingly.
+
+3. Render and deploy the updated chart.
+
+```bash
+just render
+just deploy
+```
