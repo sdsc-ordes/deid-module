@@ -24,8 +24,11 @@ the custom services developed in this repository (surrogate).
 Running `just render` templates the chart with the values in `src/chart/values.yaml` and writes the
 rendered manifests under `build/`:
 
-This is equivalent to `helm template dev src/chart -f src/chart/values.yaml
---output-dir build` followed by formatting.
+This is equivalent to:
+
+    helm template dev src/chart -f src/chart/values.yaml --output-dir build
+
+followed by formatting.
 
 ## Deployment
 
