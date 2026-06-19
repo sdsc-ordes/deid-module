@@ -1,17 +1,17 @@
 # Requests Examples
 
-These example requests allow you to test that the setup is successful. 
+These example requests allow you to test that the setup is successful.
 
 ## K8s setup
 
 Ensure you port forward the surrogate service and the anonymizer service for the following tests.
 
-Surrogate service: 
+Surrogate service:
 `kubectl port-forward services/dev-deid-presidio-surrogate -n ml-clin-deid 3300:1010`
 
 you can then see the docs at http://localhost:3300/docs as well as ping endpoints of the API.
 
-Anonymizer service: 
+Anonymizer service:
 `kubectl port-forward services/dev-deid-presidio-anonymizer -n ml-clin-deid 3000:80`
 
 ## Test 1: Upload a reference map to surrogate service

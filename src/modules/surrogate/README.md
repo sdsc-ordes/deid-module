@@ -29,9 +29,8 @@ uv run fastapi dev
 ```shell
 docker build -t fastapi-app .
 docker run -p 8000:80 \
-  -e SURROGATE_MAP_FILE=/data/surrogate_map.db \
-  -e SURROGATE_NAMES_DB_FILE=/data/names.csv \
-  -v "$(pwd)/data:/data" \
+  -e SURROGATE_MAP_FILE=/app/data/surrogate_map.db \
+  -e SURROGATE_NAMES_DB_FILE=/app/data/names.csv \
   fastapi-app
 ```
 
