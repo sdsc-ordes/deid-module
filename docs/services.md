@@ -21,13 +21,8 @@ the custom services developed in this repository (surrogate).
 
 ## Templating
 
-The chart is rendered with [helm](https://helm.sh). Running `just render`
-templates the chart with the values in `src/chart/values.yaml` and writes the
+Running `just render` templates the chart with the values in `src/chart/values.yaml` and writes the
 rendered manifests under `build/`:
-
-```bash
-just render
-```
 
 This is equivalent to `helm template dev src/chart -f src/chart/values.yaml
 --output-dir build` followed by formatting.
@@ -37,17 +32,7 @@ This is equivalent to `helm template dev src/chart -f src/chart/values.yaml
 `just deploy` installs (or upgrades) the chart on the cluster with
 `helm upgrade --install`:
 
-```bash
-just deploy
-```
-
-By default this deploys `src/chart` as release `dev` into the `ml-clin-deid`
-namespace. You can point it at another chart directory by passing it as an
-argument (`just deploy <dir>`).
-
-To configure the installation, override values from `src/chart/values.yaml`
-(see the root `README.md` for the published-chart workflow with a custom
-`values.yaml`).
+To configure the installation, override values from `src/chart/values.yaml`.
 
 ## Updating an external dependency
 
