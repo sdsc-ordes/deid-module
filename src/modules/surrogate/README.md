@@ -2,7 +2,7 @@
 
 ## Usage
 
-After starting the server, go to `http://127.0.0.1:80/docs` to read the API documentation.
+After starting the server, go to `http://127.0.0.1:8000/docs` to read the API documentation.
 
 ### Local
 
