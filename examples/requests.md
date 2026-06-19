@@ -2,7 +2,7 @@
 
 These example requests allow you to test that the setup is successful. 
 
-## K8 setup 
+## K8s setup
 
 Ensure you port forward the surrogate service and the anonymizer service for the following tests.
 
@@ -23,7 +23,7 @@ cd src/modules/surrogate/tools/scripts
 bash import-surrogate-map http://localhost:3300/map ../../data/example_map.jsonl
 ```
 
-You should get something like (or another 200 response) if the upload is successful:
+You should get a 204 (or other 2xx) response if the upload is successful:
 
 ```bash
 * Host localhost:3300 was resolved.
@@ -49,7 +49,11 @@ You should get something like (or another 200 response) if the upload is success
 ## Test 2: Anonymizer and Surrogate connection
 
 ```bash
-curl -H 'Content-Type: application/json' -X POST -d '{"anonymizers": {"DEFAULT": {"type": "surrogate"}}, "text": "Bonsoir Steve", "analyzer_results": [{"start": 8, "end": 13, "score": 0.8, "entity_type": "NAME"}]}' http://localhost:3000/anonymize
+curl \
+  -H 'Content-Type: application/json' \
+  -X POST \
+  -d '{"anonymizers": {"DEFAULT": {"type": "surrogate"}}, "text": "Bonsoir Steve", "analyzer_results": [{"start": 8, "end": 13, "score": 0.8, "entity_type": "NAME"}]}' \
+  http://localhost:3000/anonymize
 ```
 
 You should get the following output:
@@ -58,6 +62,6 @@ You should get the following output:
 {"text": "Bonsoir Simone", "items": [{"start": 8, "end": 14, "entity_type": "NAME", "text": "Simone", "operator": "surrogate"}]}%
 ```
 
-Where you can see that the mapping of the NAME followed the example map and Steve is replaced by Simone. 
+Where the PII Steve has been replaced by Simone, according to the example map we provided.
 
 This test ensures that the anonymizer and the surrogate services can talk, as well as ensure the example map is being used.
