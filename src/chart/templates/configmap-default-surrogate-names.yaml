@@ -5,5 +5,5 @@ metadata:
   name: "{{ $fullname }}-surrogate-names"
   namespace: {{ $.Values.namespace }}
 data:
-  surrogate_names.csv: |-
-{{ .Files.Get "conf/surrogate/surrogate_db/surrogate_names.csv" | indent 4 }}
+  example_names.csv: |-
+{{ .Files.Get "conf/surrogate/example_names.csv" | indent 4 }}

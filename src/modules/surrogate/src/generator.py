@@ -91,7 +91,7 @@ def generate_name_surrogate(pii: Pii, surrogate_map: SurrogateMap, names_db: Nam
                 surrogate += surrogate_word + ' '
             else:
                 predicted_gender = _GENDER_DETECTOR.get_gender(name)
-                first_letter = name[0]
+
                 surrogate_word = names_db.pick_random(predicted_gender)
                 surrogate += surrogate_word + ' '
     surrogate_map.insert(MapItem(pii=cast_pii, surrogate=surrogate.strip()))

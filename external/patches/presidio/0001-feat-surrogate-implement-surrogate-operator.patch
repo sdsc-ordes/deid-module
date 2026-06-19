@@ -48,7 +48,7 @@ index 00000000..88e429af
 +            """)
 +
 +        pii = {
-+            'pii': text,
++            'value': text,
 +            'entity_type': params["entity_type"],
 +        }
 +        resp = requests.post(f"{endpoint}/pii", json=pii)

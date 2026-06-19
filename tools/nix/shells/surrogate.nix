@@ -1,7 +1,8 @@
 # devenv modules for the surrogate Python service.
 # Enter with: nix develop ./tools/nix#surrogate
 # Then cd into src/modules/surrogate and run: uv sync --extra dev
-{pkgs, ...}: [
+{ pkgs, ... }:
+[
   {
     name = "surrogate";
     packages = [

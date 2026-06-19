@@ -7,4 +7,4 @@ metadata:
   namespace: {{ .Values.namespace }}
 data:
   SURROGATE_MAP_FILE: "/app/data/example_map.json"
-  SURROGATE_NAMES_DB_FILE: "/app/conf/surrogate_db/example_names.csv"
+  SURROGATE_NAMES_DB_FILE: "/app/conf/surrogate/example_names.csv"

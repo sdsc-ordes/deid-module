@@ -19,8 +19,11 @@ docker run -p 8000:80 fastapi-app
 
 ## fast API
 
-Launch FastAPI server with `uv run fastapi dev`. 
+Launch FastAPI server with `uv run fastapi dev`.
 
+## Import an Existing Map
+
+To load an existing surrogate map into the surrogate service, you may use the helper script [`import-surrogate-map`](tools/scripts/import-surrogate-map).
 
 ## Presidio Integration
 
@@ -28,9 +31,8 @@ Here is the expected flow of this module for its integration with Presidio.
 
 Key references:
 
-- *[Presidio API documentation for Analyzer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Analyzer)
-- **[Presidio API documentation for Anonymizer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Anonymizer)
-
+- \*[Presidio API documentation for Analyzer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Analyzer)
+- \*\*[Presidio API documentation for Anonymizer](https://microsoft.github.io/presidio/api-docs/api-docs.html#tag/Anonymizer)
 
 ```mermaid
 sequenceDiagram
@@ -39,7 +41,7 @@ sequenceDiagram
     participant Anon as Presidio-Anonymizer
     participant O as Presidio-Surrogate-Operator
     participant SG as Surrogate-Generator
-    participant VK as Valkey
+    participant SM as Surrogate-Map
 
     PT-)An: POST /analyze *
     An-)An: Detect PIIs in text
@@ -49,12 +51,12 @@ sequenceDiagram
     Anon-)O: Send PIIs one by one
     O-)SG: POST /pii
     SG-)SG: Generate surrogate for PII
-    SG-)VK: PII?
+    SG-)SM: PII?
     alt in cache
-        VK->>SG: surrogate
+        SM->>SG: surrogate
     else missing
         SG->>SG: Generate
-        SG->>VK: Insert
+        SG->>SM: Insert
     end
     SG-->>O: return surrogate
     O-->>Anon: return surrogate
