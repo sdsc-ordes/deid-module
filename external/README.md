@@ -11,15 +11,17 @@ The patches subdirectory mirrors the structure of repos and allows patching upst
 Create patch in local clone:
 
 ```
-cd external/presidio
+cd external/repos/presidio
 git checkout -b fix
 # edit files
 git commit -am "change app config"
 git format-patch -1 HEAD
 ```
 
-Apply patch from outside repo using docker context
+Apply patch from the repository root:
 
 ```
-git -C external/repos/root-dir apply external/patch/repo/file.patch
+git -C external/repos/<repo> apply external/patches/<repo>/file.patch
 ```
+
+All patches can be (re-)applied at once with `just external::patch`.
