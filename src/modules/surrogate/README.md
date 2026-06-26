@@ -42,6 +42,18 @@ Launch FastAPI server with `uv run fastapi dev`.
 
 To load an existing surrogate map into the surrogate service, you may use the helper script [`import-surrogate-map`](tools/scripts/import-surrogate-map).
 
+## Session scoping
+
+Each PII can be scoped to a `session` (e.g. a document) so the same value is
+pseudonymised consistently within a session but independently across sessions.
+
+`session` is optional on the `/pii` request body:
+
+```json
+POST /pii
+{"value": "Sara", "entity_type": "NAME", "session": "doc-123"}
+```
+
 ## Presidio Integration
 
 Here is the expected flow of this module for its integration with Presidio.
@@ -63,12 +75,12 @@ sequenceDiagram
     PT-)An: POST /analyze *
     An-)An: Detect PIIs in text
     An-->>PT: return Analyzer results *
-    PT-)Anon: POST /anonymize ** (anonymizer set to surrogates)
+    PT-)Anon: POST /anonymize ** (anonymized set to surrogate, optional session)
     Anon-)Anon: Extract PIIs from text for anonymization
     Anon-)O: Send PIIs one by one
-    O-)SG: POST /pii
+    O-)SG: POST /pii (value, entity_type, session)
     SG-)SG: Generate surrogate for PII
-    SG-)SM: PII?
+    SG-)SM: (value, entity_type, session)?
     alt in cache
         SM->>SG: surrogate
     else missing
