@@ -13,20 +13,6 @@ import sqlite3
 from models import MapItem, Pii
 
 
-# The SQLite ``session`` column is part of the primary key and ``NOT NULL``, and
-# ``WHERE session = NULL`` never matches. A sessionless (globally scoped) PII is
-# therefore stored under this sentinel rather than SQL NULL.
-_NO_SESSION = ""
-
-
-def _session_to_db(session: str | None) -> str:
-    return _NO_SESSION if session is None else session
-
-
-def _session_from_db(session: str) -> str | None:
-    return None if session == _NO_SESSION else session
-
-
 class SurrogateMap(Protocol):
     """Protocol for a case-insensitive pii → surrogate persistence map."""
 
@@ -46,6 +32,18 @@ class SqlSurrogateMap:
     """SQLite DB surrogate map."""
 
     _map_path: Path
+
+    # Sentinel for the empty session (global scope). NULL is not used because
+    # `session` is part of the primary key and `WHERE session = NULL` never matches.
+    _NO_SESSION = ""
+
+    @staticmethod
+    def _session_to_db(session: str | None) -> str:
+        return SqlSurrogateMap._NO_SESSION if session is None else session
+
+    @staticmethod
+    def _session_from_db(session: str) -> str | None:
+        return None if session == SqlSurrogateMap._NO_SESSION else session
 
     def __init__(self, map_path: Path) -> None:
         self._map_path = map_path
@@ -71,7 +69,7 @@ class SqlSurrogateMap:
                     pii=Pii(
                         value=pii,
                         entity_type=entity_type,
-                        session=_session_from_db(session),
+                        session=self._session_from_db(session),
                     ),
                     surrogate=surrogate,
                 )
@@ -94,7 +92,7 @@ class SqlSurrogateMap:
                 (
                     clean_item.pii.value,
                     clean_item.pii.entity_type,
-                    _session_to_db(clean_item.pii.session),
+                    self._session_to_db(clean_item.pii.session),
                     clean_item.surrogate,
                 ),
             )
@@ -105,7 +103,7 @@ class SqlSurrogateMap:
         with closing(sqlite3.connect(self._map_path)) as conn:
             row = conn.execute(
                 "SELECT surrogate FROM surrogate_map WHERE pii = ? AND entity_type = ? AND session = ?",
-                (clean_pii.value, clean_pii.entity_type, _session_to_db(clean_pii.session)),
+                (clean_pii.value, clean_pii.entity_type, self._session_to_db(clean_pii.session)),
             ).fetchone()
         return row[0] if row else None
 
