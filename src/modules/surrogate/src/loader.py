@@ -38,24 +38,25 @@ class SqlSurrogateMap:
     def __init__(self, map_path: Path) -> None:
         self._map_path = map_path
         with sqlite3.connect(self._map_path) as conn:
-            conn.execute(
+            _ = conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS surrogate_map (
                     pii         TEXT NOT NULL,
-                    surrogate   TEXT NOT NULL,
+                    session     TEXT NOT NULL,
                     entity_type TEXT NOT NULL,
-                    PRIMARY KEY (pii, entity_type)
+                    surrogate   TEXT NOT NULL,
+                    PRIMARY KEY (pii, session, entity_type)
                 )
                 """
             )
 
     def __iter__(self) -> Iterator[MapItem]:
         with closing(sqlite3.connect(self._map_path)) as conn:
-            for pii, surrogate, entity_type in conn.execute(
-                "SELECT pii, surrogate, entity_type FROM surrogate_map"
+            for pii, surrogate, entity_type, session in conn.execute(
+                "SELECT pii, surrogate, entity_type, session FROM surrogate_map"
             ):
                 yield MapItem(
-                    pii=Pii(value=pii, entity_type=entity_type),
+                    pii=Pii(value=pii, entity_type=entity_type, session=session),
                     surrogate=surrogate,
                 )
 
@@ -71,10 +72,10 @@ class SqlSurrogateMap:
         with closing(sqlite3.connect(self._map_path)) as conn:
             _ = conn.execute(
                 """
-                INSERT INTO surrogate_map (pii, entity_type, surrogate) VALUES (?, ?, ?)
-                ON CONFLICT(pii, entity_type) DO UPDATE SET surrogate = excluded.surrogate
+                INSERT INTO surrogate_map (pii, entity_type, session, surrogate) VALUES (?, ?, ?, ?)
+                ON CONFLICT(pii, entity_type, session) DO UPDATE SET surrogate = excluded.surrogate
                 """,
-                (clean_item.pii.value, clean_item.pii.entity_type, clean_item.surrogate),
+                (clean_item.pii.value, clean_item.pii.entity_type, clean_item.pii.session, clean_item.surrogate),
             )
             conn.commit()
 
@@ -82,8 +83,8 @@ class SqlSurrogateMap:
         clean_pii = pii.to_sanitized()
         with closing(sqlite3.connect(self._map_path)) as conn:
             row = conn.execute(
-                "SELECT surrogate FROM surrogate_map WHERE pii = ? AND entity_type = ?",
-                (clean_pii.value, clean_pii.entity_type),
+                "SELECT surrogate FROM surrogate_map WHERE pii = ? AND entity_type = ? AND session = ?",
+                (clean_pii.value, clean_pii.entity_type, clean_pii.session),
             ).fetchone()
         return row[0] if row else None
 

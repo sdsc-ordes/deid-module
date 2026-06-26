@@ -7,11 +7,13 @@ class Pii(BaseModel):
 
     value: str = Field(description="PII value to replace, e.g. 'John Doe', '01/01/1990', 'New York'.")
     entity_type: str = Field(description="Entity tag, e.g. 'NAME', 'LOCATION', 'DATE'.")
+    session: str | None = Field(description="Identifier of session scoping this PII.")
 
     def to_sanitized(self) -> Pii:
         return Pii(
             value = self.value.lower(),
             entity_type = self.entity_type,
+            session = self.session,
         )
 
 class MapItem(BaseModel):
