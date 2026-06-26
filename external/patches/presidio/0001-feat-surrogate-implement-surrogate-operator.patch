@@ -56,7 +56,7 @@ index 0000000..58c5ecb
 +        if session is not None:
 +            pii['session'] = session
 +
-+        resp = requests.post(f"{endpoint}/pii", json=pii)
++        resp = requests.post(f"{endpoint}/pii", json=pii, timeout=10)
 +        resp.raise_for_status()
 +        surrogate = resp.json()['surrogate']
 +
