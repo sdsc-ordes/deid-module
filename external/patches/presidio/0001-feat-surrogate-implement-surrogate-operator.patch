@@ -1,37 +1,35 @@
-From 7d6e28632ff6ae17322d888d729aae398d8c357f Mon Sep 17 00:00:00 2001
+From 5426b2138c73d15cbd9bc2dd20cb28fd94ce2c6a Mon Sep 17 00:00:00 2001
 From: cmdoret <cyril.mattheydoret@gmail.com>
 Date: Thu, 21 May 2026 15:32:01 +0200
 Subject: [PATCH] feat(surrogate): implement surrogate operator
 
 ---
- .../operators/surrogate.py                    | 58 +++++++++++++++++++
- 1 file changed, 58 insertions(+)
+ .../operators/surrogate.py                    | 63 +++++++++++++++++++
+ 1 file changed, 63 insertions(+)
  create mode 100644 presidio-anonymizer/presidio_anonymizer/operators/surrogate.py
 
 diff --git a/presidio-anonymizer/presidio_anonymizer/operators/surrogate.py b/presidio-anonymizer/presidio_anonymizer/operators/surrogate.py
 new file mode 100644
-index 00000000..88e429af
+index 0000000..58c5ecb
 --- /dev/null
 +++ b/presidio-anonymizer/presidio_anonymizer/operators/surrogate.py
-@@ -0,0 +1,58 @@
+@@ -0,0 +1,63 @@
 +"""Replaces the PII text entity with new string."""
 +
 +import os
 +import requests
 +from typing import override
-+from uuid import uuid4
 +
 +from presidio_anonymizer.entities import InvalidParamError
 +from presidio_anonymizer.operators import Operator, OperatorType
 +from presidio_anonymizer.services.validators import validate_type
 +
-+def generate() -> str:
-+    return uuid4().hex
 +
 +class Surrogate(Operator):
-+    """Replace PII text with a random entity from a dictionary based on entity."""
++    """Replace PII text with a surrogate fetched from the surrogate service."""
 +
 +    ENDPOINT: str = "endpoint"
++    SESSION: str = "session"
 +
 +    @override
 +    def operate(self, text: str | None = None, params: dict[str, str] | None = None) -> str:
@@ -43,7 +41,7 @@ index 00000000..88e429af
 +        if not endpoint:
 +            raise InvalidParamError("""
 +                Surrogate generation service endpoint is required.
-+                Provide via 'endpoint' parameter 
++                Provide via 'endpoint' parameter
 +                or set SURROGATE_ENDPOINT environment variable.
 +            """)
 +
@@ -51,6 +49,13 @@ index 00000000..88e429af
 +            'value': text,
 +            'entity_type': params["entity_type"],
 +        }
++        # Scope the surrogate to a session (e.g. a document) when provided: the
++        # same value maps consistently within a session but independently across
++        # sessions. Omitted -> the service shares the surrogate globally.
++        session = params.get(self.SESSION)
++        if session is not None:
++            pii['session'] = session
++
 +        resp = requests.post(f"{endpoint}/pii", json=pii)
 +        resp.raise_for_status()
 +        surrogate = resp.json()['surrogate']
@@ -59,9 +64,9 @@ index 00000000..88e429af
 +
 +    @override
 +    def validate(self, params: dict[str, str] | None = None) -> None:
-+        """Validate the new value is string."""
++        """Validate that the endpoint and session parameters are strings."""
 +        validate_type(params.get(self.ENDPOINT), self.ENDPOINT, str)
-+        pass
++        validate_type(params.get(self.SESSION), self.SESSION, str)
 +
 +    @override
 +    def operator_name(self) -> str:
@@ -73,5 +78,5 @@ index 00000000..88e429af
 +        """Return operator type."""
 +        return OperatorType.Anonymize
 -- 
-2.48.1
+2.53.0
 

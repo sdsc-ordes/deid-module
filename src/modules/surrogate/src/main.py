@@ -44,7 +44,7 @@ app = FastAPI(title="Surrogate Generator", lifespan=lifespan)
 
 @app.post("/pii")
 def generate_pii_surrogate(body: Pii, request: Request) -> MapItem:
-    """Surrogate a single PII value. Idempotent per (pii, entity_type)."""
+    """Surrogate a single PII value. Idempotent per (pii, entity_type, session)."""
     surrogate = generate_surrogate(
         body,
         request.app.state.surrogate_map,
