@@ -80,4 +80,4 @@ curl \
 ```
 
 The same value gets a stable surrogate within a session but an independent one
-across sessions. 
+across sessions.

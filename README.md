@@ -35,6 +35,7 @@ You may configure the installation by providing a custom values.yaml file.
 ```shell
 helm install -f custom-values.yaml --create-namespace presidio oci://ghcr.io/sdsc-ordes/deid-module-chart/deid-presidio
 ```
+
 Note that the presidio configuration files are exposed through configMaps.
 The values `analyzerConfigMapName` `defaultConfigMapName` and `recognizersConfigMapName` can be used to point to the name of an existing configMap.
 You may look at [`configmap-default-recognizers.yaml`](./src/chart/templates/configmap-default-recognizers.yaml) for an example on how to write your own configmap.
