@@ -76,7 +76,7 @@ def generate_surrogate(
 def generate_name_surrogate(pii: Pii, surrogate_map: SurrogateMap, names_db: NameDatabase) -> str:
     """Replace a person name word-by-word, preserving recognised titles (Dr., Mr., …)."""
     #TODO: remove entity casting from generator logic -> use str enums instead
-    cast_pii = Pii(value=pii.value, entity_type='NAME', session=pii.session)
+    cast_pii = pii.model_copy(update={'entity_type': 'NAME'})
     surrogate = surrogate_map.get(cast_pii)
     if surrogate is not None:
         return surrogate
@@ -86,7 +86,7 @@ def generate_name_surrogate(pii: Pii, surrogate_map: SurrogateMap, names_db: Nam
         if re.match(r'^(Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Mme\.|M\.|Mme|M|Dr|Mr|Ms|Mrs|Prof)$', name):
             surrogate += name + ' '
         else:
-            surrogate_word = surrogate_map.get(Pii(value=name, entity_type='NAME', session=pii.session))
+            surrogate_word = surrogate_map.get(pii.model_copy(update={'value': name, 'entity_type': 'NAME'}))
             if surrogate_word is not None:
                 surrogate += surrogate_word + ' '
             else:
@@ -175,7 +175,7 @@ def generate_date_surrogate(pii: Pii, surrogate_map: SurrogateMap, year_shift: i
 
     surrogate_map.insert(
         MapItem(
-            pii=Pii(value=clean_date, entity_type='DATE', session=pii.session),
+            pii=pii.model_copy(update={'value': clean_date, 'entity_type': 'DATE'}),
             surrogate=surrogate,
         )
     )
@@ -205,7 +205,7 @@ def generate_contact_surrogate(pii: Pii, surrogate_map: SurrogateMap) -> str:
 
 
 def generate_number_surrogate(pii: Pii, surrogate_map: SurrogateMap) -> str:
-    cast_pii = Pii(value=pii.value, entity_type='NUMBER', session=pii.session)
+    cast_pii = pii.model_copy(update={'entity_type': 'NUMBER'})
     surrogate = surrogate_map.get(cast_pii)
     if surrogate is not None:
         return surrogate

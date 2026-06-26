@@ -23,11 +23,7 @@ class Pii(BaseModel):
         return data
 
     def to_sanitized(self) -> Pii:
-        return Pii(
-            value = self.value.lower(),
-            entity_type = self.entity_type,
-            session = self.session,
-        )
+        return self.model_copy(update={"value": self.value.lower()})
 
 class MapItem(BaseModel):
     """A single PII-to-surrogate mapping."""
