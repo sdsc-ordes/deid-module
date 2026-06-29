@@ -65,3 +65,19 @@ You should get the following output:
 Where the PII Steve has been replaced by Simone, according to the example map we provided.
 
 This test ensures that the anonymizer and the surrogate services can talk, as well as ensure the example map is being used.
+
+## Test 3: Session scoping (optional)
+
+Test 2 omits a session, so surrogates are shared globally (`Steve -> Simone` mapping is reused).
+To scope surrogates to a document, pass a `session` in the operator config:
+
+```bash
+curl \
+  -H 'Content-Type: application/json' \
+  -X POST \
+  -d '{"anonymizers": {"DEFAULT": {"type": "surrogate", "session": "doc-123"}}, "text": "Bonsoir Steve", "analyzer_results": [{"start": 8, "end": 13, "score": 0.8, "entity_type": "NAME"}]}' \
+  http://localhost:3000/anonymize
+```
+
+The same value gets a stable surrogate within a session but an independent one
+across sessions.

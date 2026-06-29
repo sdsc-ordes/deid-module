@@ -67,6 +67,19 @@ def test_surrogate_is_idempotent(client):
     assert r1.json()["surrogate"] == r2.json()["surrogate"]
 
 
+def test_pii_response_echoes_session(client):
+    resp = client.post(
+        "/pii",
+        json={"value": "test@example.com", "entity_type": "CONTACT", "session": "doc1"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["pii"] == {
+        "value": "test@example.com",
+        "entity_type": "CONTACT",
+        "session": "doc1",
+    }
+
+
 def test_name_surrogate_uses_names_db(client):
     resp = client.post("/pii", json={"value": "Alice", "entity_type": "NAME"})
     assert resp.status_code == 200
