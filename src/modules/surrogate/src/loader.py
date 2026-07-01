@@ -187,10 +187,10 @@ class NameDatabase:
 
     def __init__(self, names_db_path: Path) -> None:
         self.names_db_path = Path(names_db_path)
-        self._cache: dict[str, list[str]] = self._build_cache()
+        self._cache: dict[str, dict[str, list[str]]] = self._build_cache()
 
-    def _build_cache(self) -> dict[str, list[str]]:
-        cache: dict[str, list[str]] = {"female": [], "male": [], "unisex": []}
+    def _build_cache(self) -> dict[str, dict[str, list[str]]]:
+        cache: dict[str, dict[str, list[str]]] = {"female": {}, "male": {}, "unisex": {}}
         if not self.names_db_path.is_file():
             return cache
 
@@ -200,7 +200,8 @@ class NameDatabase:
                 name = row.get("name", "").strip()
                 gender = row.get("gender", "").strip().lower()
                 if name and gender in cache:
-                    cache[gender].append(name)
+                    letter = name[0].upper()
+                    cache[gender].setdefault(letter, []).append(name)
         return cache
 
     @staticmethod
@@ -208,10 +209,12 @@ class NameDatabase:
         return _GENDER_LABELS.get(str(predicted), "unisex")
 
 
-    def pick_random(self, gender: str | None) -> str:
+    def pick_random(self, gender: str | None, first_letter: str | None = None) -> str:
         """Return a random name matching gender, or 'Doe' as fallback."""
-        if gender is None:
+        if gender is None or not first_letter:
             return "Doe"
+        first_letter = first_letter.upper()
         gender_label = self._match_gender(gender)
-        names = self._cache.get(gender_label) or self._cache.get("unisex")
+        gender_cache = self._cache.get(gender_label) or self._cache.get("unisex")
+        names = gender_cache.get(first_letter, [])
         return random.choice(names) if names else "Doe"
