@@ -65,15 +65,26 @@ class TestNameDatabase:
         pytest.param("mostly_female", {"Alice", "Anna"},   id="mostly_female"),
         pytest.param("androgynous",   {"Alex", "Adrian"},  id="androgynous"),
     ])
-    def test_pick_random_by_gender(self, names_db, gender, expected):
-        assert names_db.pick_random(gender) in expected
+    def test_pick_random_by_gender_and_first_letter(self, names_db, gender, expected):
+        assert names_db.pick_random(gender, "A") in expected
 
     def test_unknown_gender_falls_back_to_unisex(self, names_db):
-        assert names_db.pick_random("unknown") in {"Alex", "Adrian"}
+        assert names_db.pick_random("unknown", "A") in {"Alex", "Adrian"}
+
+    def test_first_letter_is_case_insensitive(self, names_db):
+        assert names_db.pick_random("female", "a") in {"Alice", "Anna"}
+
+    def test_missing_first_letter_returns_doe(self, names_db):
+        assert names_db.pick_random("female") == "Doe"
+        assert names_db.pick_random("female", "") == "Doe"
+
+    def test_unknown_first_letter_returns_doe(self, names_db):
+        assert names_db.pick_random("female", "Z") == "Doe"
 
     def test_none_gender_returns_doe(self, names_db):
         assert names_db.pick_random(None) == "Doe"
+        assert names_db.pick_random(None, "A") == "Doe"
 
     def test_missing_csv_returns_doe(self, tmp_path):
         db = NameDatabase(str(tmp_path))
-        assert db.pick_random("female") == "Doe"
+        assert db.pick_random("female", "A") == "Doe"
